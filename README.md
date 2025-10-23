@@ -40,13 +40,26 @@ Blog Creator is a two-phase AI pipeline:
 
 ## Quick Start
 
-No installation required! Run directly with `uvx`:
+**Current Status**: Development setup required (uvx support coming when amplifier package published).
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/robotdad/amplifier-app-blog-creator
+cd amplifier-app-blog-creator
+
+# Install dependencies
+uv sync
+
+# Run the app
+uv run blog-creator --idea rough_notes.md --writings-dir ~/my_blog_posts/
+```
 
 ### Content Only
 
 ```bash
-uvx --from git+https://github.com/robotdad/amplifier-dev#subdirectory=amplifier-app-blog-creator \
-  blog-creator \
+uv run blog-creator \
   --idea rough_notes.md \
   --writings-dir ~/my_blog_posts/
 ```
@@ -54,35 +67,22 @@ uvx --from git+https://github.com/robotdad/amplifier-dev#subdirectory=amplifier-
 ### Complete Illustrated Post
 
 ```bash
-uvx --from git+https://github.com/robotdad/amplifier-dev#subdirectory=amplifier-app-blog-creator \
-  blog-creator \
+uv run blog-creator \
   --idea rough_notes.md \
   --writings-dir ~/my_blog_posts/ \
   --illustrate \
   --style "minimalist technical diagrams"
 ```
 
-### Shorter with Alias
-
-```bash
-# Add to your shell config (~/.zshrc, ~/.bashrc):
-alias blog-creator='uvx --from git+https://github.com/robotdad/amplifier-dev#subdirectory=amplifier-app-blog-creator blog-creator'
-
-# Then use simply:
-blog-creator --idea notes.md --writings-dir ~/posts/
-blog-creator --idea notes.md --writings-dir ~/posts/ --illustrate
-```
-
 ---
 
-## Installation (For Development)
+## Future: uvx Support
 
-Only needed if you want to modify the code:
+Once the `amplifier` package is published, you'll be able to run directly with `uvx`:
 
 ```bash
-git clone https://github.com/robotdad/amplifier-dev
-cd amplifier-dev/amplifier-app-blog-creator
-uv sync --dev
+# Coming soon:
+uvx blog-creator --idea notes.md --writings-dir ~/posts/
 ```
 
 ---
