@@ -6,7 +6,6 @@ Analyzes content, generates image prompts, and creates illustrations.
 import logging
 from pathlib import Path
 
-from amplifier_module_image_generation import GenerationRequest
 from amplifier_module_image_generation import ImageGenerator
 
 logger = logging.getLogger(__name__)
@@ -52,15 +51,27 @@ class IllustrationPhase:
 
         # Generate images
         generated_images = []
+        output_dir.mkdir(parents=True, exist_ok=True)
+
         for i, prompt in enumerate(prompts, 1):
             logger.info(f"Generating image {i}/{len(prompts)}")
 
-            request = GenerationRequest(prompt=prompt, style=style or "professional blog illustration")
-
             try:
-                image_path = await self.image_generator.generate(request, output_dir, apis)
-                generated_images.append(image_path)
-                logger.info(f"✓ Generated: {image_path.name}")
+                # Generate output path for this image
+                image_path = output_dir / f"illustration_{i}.png"
+
+                # Use first API from list as preferred
+                preferred_api = apis[0] if apis else "gptimage"
+
+                result = await self.image_generator.generate(
+                    prompt=prompt, output_path=image_path, preferred_api=preferred_api
+                )
+
+                if result.success:
+                    generated_images.append(result.local_path)
+                    logger.info(f"✓ Generated: {result.local_path.name} (cost: ${result.cost:.4f})")
+                else:
+                    logger.error(f"Failed to generate image {i}: {result.error}")
             except Exception as e:
                 logger.error(f"Failed to generate image {i}: {e}")
 
