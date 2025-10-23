@@ -46,8 +46,8 @@ subdirectory = "amplifier-core"
 branch = "main"
 
 [tool.uv.sources.amplifier]
-git = "https://github.com/microsoft/amplifier"
-branch = "main"
+path = "../../../../../amplifier"
+editable = true
 
 [tool.uv.sources.amplifier-module-style-extraction]
 git = "https://github.com/robotdad/amplifier-module-style-extraction"
