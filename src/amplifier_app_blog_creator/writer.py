@@ -3,13 +3,13 @@
 Transforms brain dumps into polished blog posts using style profile.
 """
 
+import logging
+import os
 from typing import Any
 
-from amplifier.ccsdk_toolkit import ClaudeSession
-from amplifier.ccsdk_toolkit import SessionOptions
-from amplifier.utils.logger import get_logger
+from anthropic import AsyncAnthropic
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class BlogWriter:
@@ -85,15 +85,15 @@ Write a complete blog post that:
 
 Return ONLY the blog post content in markdown format, starting with # Title."""
 
-        options = SessionOptions(
-            system_prompt="You are an expert blog writer who can match any writing style.",
-            retry_attempts=2,
-        )
-
         try:
-            async with ClaudeSession(options) as session:
-                response = await session.query(prompt)
-                return response.content.strip()
+            client = AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+            response = await client.messages.create(
+                model="claude-3-5-haiku-20241022",
+                max_tokens=4096,
+                system="You are an expert blog writer who can match any writing style.",
+                messages=[{"role": "user", "content": prompt}],
+            )
+            return response.content[0].text.strip()
         except Exception as e:
             logger.error(f"Blog generation failed: {e}")
             # Return a basic transformation as fallback
@@ -154,15 +154,15 @@ Revise the blog to:
 
 Return ONLY the revised blog post content in markdown format."""
 
-        options = SessionOptions(
-            system_prompt="You are an expert editor who improves blogs based on feedback.",
-            retry_attempts=2,
-        )
-
         try:
-            async with ClaudeSession(options) as session:
-                response = await session.query(prompt)
-                return response.content.strip()
+            client = AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+            response = await client.messages.create(
+                model="claude-3-5-haiku-20241022",
+                max_tokens=4096,
+                system="You are an expert editor who improves blogs based on feedback.",
+                messages=[{"role": "user", "content": prompt}],
+            )
+            return response.content[0].text.strip()
         except Exception as e:
             logger.error(f"Blog revision failed: {e}")
             # Return previous draft if revision fails

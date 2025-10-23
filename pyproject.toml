@@ -7,11 +7,10 @@ authors = [
 ]
 requires-python = ">=3.11"
 dependencies = [
-    "amplifier-core",
-    "amplifier",
     "amplifier-module-style-extraction",
     "amplifier-module-image-generation",
     "amplifier-module-markdown-utils",
+    "anthropic>=0.25.0",
     "click>=8.0.0",
     "pydantic>=2.0.0",
     "pydantic-ai>=0.0.14",
@@ -39,15 +38,6 @@ packages = ["src/amplifier_app_blog_creator"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
-
-[tool.uv.sources.amplifier-core]
-git = "https://github.com/microsoft/amplifier-dev"
-subdirectory = "amplifier-core"
-branch = "main"
-
-[tool.uv.sources.amplifier]
-path = "../../../../../amplifier"
-editable = true
 
 [tool.uv.sources.amplifier-module-style-extraction]
 git = "https://github.com/robotdad/amplifier-module-style-extraction"

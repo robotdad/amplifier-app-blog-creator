@@ -3,16 +3,15 @@ Source reviewer - Verifies factual accuracy and proper attribution.
 """
 
 import json
+import logging
+import os
 from typing import Any
 
+from anthropic import AsyncAnthropic
 from pydantic import BaseModel
 from pydantic import Field
 
-from amplifier.ccsdk_toolkit import ClaudeSession
-from amplifier.ccsdk_toolkit import SessionOptions
-from amplifier.utils.logger import get_logger
-
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class SourceReview(BaseModel):
@@ -98,71 +97,71 @@ Return JSON with:
 - suggestions: list of how to fix issues
 - needs_revision: boolean (true if accuracy < 0.8 or instructions not followed)"""
 
-        options = SessionOptions(
-            system_prompt="You are a fact-checker ensuring blog accuracy.",
-            retry_attempts=2,
-        )
-
         try:
-            async with ClaudeSession(options) as session:
-                response = await session.query(prompt)
+            client = AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+            response = await client.messages.create(
+                model="claude-3-5-haiku-20241022",
+                max_tokens=4096,
+                system="You are a fact-checker ensuring blog accuracy.",
+                messages=[{"role": "user", "content": prompt}],
+            )
 
-                if not response or not response.content:
-                    logger.error("No response from source review, using default")
-                    return self._default_review()
+            if not response or not response.content:
+                logger.error("No response from source review, using default")
+                return self._default_review()
 
-                # Try to parse JSON response
-                try:
-                    content = response.content.strip()
-                    # Remove markdown code blocks if present
-                    if content.startswith("```"):
-                        content = content.split("```")[1]
-                        if content.startswith("json"):
-                            content = content[4:]
-                    parsed = json.loads(content.strip())
-                except json.JSONDecodeError as e:
-                    logger.error(f"Failed to parse source review JSON: {e}, using default")
-                    return self._default_review()
+            # Try to parse JSON response
+            try:
+                content = response.content[0].text.strip()
+                # Remove markdown code blocks if present
+                if content.startswith("```"):
+                    content = content.split("```")[1]
+                    if content.startswith("json"):
+                        content = content[4:]
+                parsed = json.loads(content.strip())
+            except json.JSONDecodeError as e:
+                logger.error(f"Failed to parse source review JSON: {e}, using default")
+                return self._default_review()
 
-                # Validate and structure response
-                issues = parsed.get("issues", [])
-                suggestions = parsed.get("suggestions", [])
+            # Validate and structure response
+            issues = parsed.get("issues", [])
+            suggestions = parsed.get("suggestions", [])
 
-                # Convert dict items to strings if needed
-                if issues and isinstance(issues[0], dict):
-                    issues = [
-                        item.get("description", str(item)) if isinstance(item, dict) else str(item) for item in issues
-                    ]
+            # Convert dict items to strings if needed
+            if issues and isinstance(issues[0], dict):
+                issues = [
+                    item.get("description", str(item)) if isinstance(item, dict) else str(item) for item in issues
+                ]
 
-                if suggestions and isinstance(suggestions[0], dict):
-                    suggestions = [
-                        item.get("description", str(item)) if isinstance(item, dict) else str(item)
-                        for item in suggestions
-                    ]
+            if suggestions and isinstance(suggestions[0], dict):
+                suggestions = [
+                    item.get("description", str(item)) if isinstance(item, dict) else str(item)
+                    for item in suggestions
+                ]
 
-                review_data = {
-                    "accuracy_score": float(parsed.get("accuracy_score", 0.9)),
-                    "has_issues": bool(parsed.get("has_issues", False)),
-                    "issues": issues,
-                    "suggestions": suggestions,
-                    "needs_revision": bool(parsed.get("needs_revision", False)),
-                }
+            review_data = {
+                "accuracy_score": float(parsed.get("accuracy_score", 0.9)),
+                "has_issues": bool(parsed.get("has_issues", False)),
+                "issues": issues,
+                "suggestions": suggestions,
+                "needs_revision": bool(parsed.get("needs_revision", False)),
+            }
 
-                # Force needs_revision if accuracy too low or issues found
-                if review_data["accuracy_score"] < 0.8:
-                    logger.info(f"Accuracy score {review_data['accuracy_score']:.2f} < 0.8, forcing revision")
-                    review_data["needs_revision"] = True
-                    review_data["has_issues"] = True
+            # Force needs_revision if accuracy too low or issues found
+            if review_data["accuracy_score"] < 0.8:
+                logger.info(f"Accuracy score {review_data['accuracy_score']:.2f} < 0.8, forcing revision")
+                review_data["needs_revision"] = True
+                review_data["has_issues"] = True
 
-                if review_data["issues"] and len(review_data["issues"]) > 0:
-                    logger.info(f"Found {len(review_data['issues'])} issues, forcing revision")
-                    review_data["needs_revision"] = True
-                    review_data["has_issues"] = True
+            if review_data["issues"] and len(review_data["issues"]) > 0:
+                logger.info(f"Found {len(review_data['issues'])} issues, forcing revision")
+                review_data["needs_revision"] = True
+                review_data["has_issues"] = True
 
-                review = SourceReview(**review_data)
-                self._log_review_results(review)
+            review = SourceReview(**review_data)
+            self._log_review_results(review)
 
-                return review.model_dump()
+            return review.model_dump()
 
         except Exception as e:
             logger.error(f"Source review failed: {e}")

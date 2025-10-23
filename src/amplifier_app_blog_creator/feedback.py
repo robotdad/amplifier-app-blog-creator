@@ -2,6 +2,7 @@
 User feedback handling - Parses user feedback and extracts actionable directives.
 """
 
+import logging
 import re
 from pathlib import Path
 from typing import Any
@@ -9,9 +10,7 @@ from typing import Any
 from pydantic import BaseModel
 from pydantic import Field
 
-from amplifier.utils.logger import get_logger
-
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class FeedbackItem(BaseModel):

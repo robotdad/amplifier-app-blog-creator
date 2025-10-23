@@ -3,14 +3,13 @@
 Analyzes content, generates image prompts, and creates illustrations.
 """
 
+import logging
 from pathlib import Path
 
 from amplifier_module_image_generation import GenerationRequest
 from amplifier_module_image_generation import ImageGenerator
 
-from amplifier.utils.logger import get_logger
-
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class IllustrationPhase:

@@ -4,9 +4,8 @@ Coordinates blog writing with review and user feedback.
 """
 
 import asyncio
+import logging
 from pathlib import Path
-
-from amplifier.utils.logger import get_logger
 
 from .blog_writer import BlogWriter
 from .feedback import UserFeedbackHandler
@@ -14,7 +13,7 @@ from .reviewers.source_reviewer import SourceReviewer
 from .reviewers.style_reviewer import StyleReviewer
 from .session import SessionManager as StateManager
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class ContentPhase:

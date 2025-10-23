@@ -3,16 +3,15 @@ Style reviewer - Checks blog consistency with author's style profile.
 """
 
 import json
+import logging
+import os
 from typing import Any
 
+from anthropic import AsyncAnthropic
 from pydantic import BaseModel
 from pydantic import Field
 
-from amplifier.ccsdk_toolkit import ClaudeSession
-from amplifier.ccsdk_toolkit import SessionOptions
-from amplifier.utils.logger import get_logger
-
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class StyleReview(BaseModel):
@@ -66,75 +65,75 @@ Return JSON with:
 - suggestions: list of how to better match style
 - needs_revision: boolean (true if score < 0.7)"""
 
-        options = SessionOptions(
-            system_prompt="You are a style editor ensuring writing consistency.",
-            retry_attempts=2,
-        )
-
         try:
-            async with ClaudeSession(options) as session:
-                response = await session.query(prompt)
+            client = AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+            response = await client.messages.create(
+                model="claude-3-5-haiku-20241022",
+                max_tokens=4096,
+                system="You are a style editor ensuring writing consistency.",
+                messages=[{"role": "user", "content": prompt}],
+            )
 
-                if not response or not response.content:
-                    logger.error("No response from style review, using default")
-                    return self._default_review()
+            if not response or not response.content:
+                logger.error("No response from style review, using default")
+                return self._default_review()
 
-                # Try to parse JSON response
-                try:
-                    content = response.content.strip()
-                    # Remove markdown code blocks if present
-                    if content.startswith("```"):
-                        content = content.split("```")[1]
-                        if content.startswith("json"):
-                            content = content[4:]
-                    parsed = json.loads(content.strip())
-                except json.JSONDecodeError as e:
-                    logger.error(f"Failed to parse style review JSON: {e}, using default")
-                    return self._default_review()
+            # Try to parse JSON response
+            try:
+                content = response.content[0].text.strip()
+                # Remove markdown code blocks if present
+                if content.startswith("```"):
+                    content = content.split("```")[1]
+                    if content.startswith("json"):
+                        content = content[4:]
+                parsed = json.loads(content.strip())
+            except json.JSONDecodeError as e:
+                logger.error(f"Failed to parse style review JSON: {e}, using default")
+                return self._default_review()
 
-                # Validate and structure response
-                issues = parsed.get("issues", [])
-                suggestions = parsed.get("suggestions", [])
+            # Validate and structure response
+            issues = parsed.get("issues", [])
+            suggestions = parsed.get("suggestions", [])
 
-                # Convert dict items to strings if needed
-                if issues and isinstance(issues[0], dict):
-                    issues = [
-                        item.get("description", str(item)) if isinstance(item, dict) else str(item) for item in issues
-                    ]
+            # Convert dict items to strings if needed
+            if issues and isinstance(issues[0], dict):
+                issues = [
+                    item.get("description", str(item)) if isinstance(item, dict) else str(item) for item in issues
+                ]
 
-                if suggestions and isinstance(suggestions[0], dict):
-                    suggestions = [
-                        item.get("description", str(item)) if isinstance(item, dict) else str(item)
-                        for item in suggestions
-                    ]
+            if suggestions and isinstance(suggestions[0], dict):
+                suggestions = [
+                    item.get("description", str(item)) if isinstance(item, dict) else str(item)
+                    for item in suggestions
+                ]
 
-                review_data = {
-                    "consistency_score": float(parsed.get("consistency_score", 0.8)),
-                    "matches_tone": bool(parsed.get("matches_tone", True)),
-                    "matches_voice": bool(parsed.get("matches_voice", True)),
-                    "issues": issues,
-                    "suggestions": suggestions,
-                    "needs_revision": bool(parsed.get("needs_revision", False)),
-                }
+            review_data = {
+                "consistency_score": float(parsed.get("consistency_score", 0.8)),
+                "matches_tone": bool(parsed.get("matches_tone", True)),
+                "matches_voice": bool(parsed.get("matches_voice", True)),
+                "issues": issues,
+                "suggestions": suggestions,
+                "needs_revision": bool(parsed.get("needs_revision", False)),
+            }
 
-                # Force needs_revision if score too low or issues found
-                if review_data["consistency_score"] < 0.7:
-                    logger.info(f"Consistency score {review_data['consistency_score']:.2f} < 0.7, forcing revision")
-                    review_data["needs_revision"] = True
+            # Force needs_revision if score too low or issues found
+            if review_data["consistency_score"] < 0.7:
+                logger.info(f"Consistency score {review_data['consistency_score']:.2f} < 0.7, forcing revision")
+                review_data["needs_revision"] = True
 
-                if review_data["issues"] and len(review_data["issues"]) > 0:
-                    logger.info(f"Found {len(review_data['issues'])} style issues, forcing revision")
-                    review_data["needs_revision"] = True
+            if review_data["issues"] and len(review_data["issues"]) > 0:
+                logger.info(f"Found {len(review_data['issues'])} style issues, forcing revision")
+                review_data["needs_revision"] = True
 
-                # Force needs_revision if tone or voice don't match
-                if not review_data["matches_tone"] or not review_data["matches_voice"]:
-                    logger.info("Tone or voice mismatch, forcing revision")
-                    review_data["needs_revision"] = True
+            # Force needs_revision if tone or voice don't match
+            if not review_data["matches_tone"] or not review_data["matches_voice"]:
+                logger.info("Tone or voice mismatch, forcing revision")
+                review_data["needs_revision"] = True
 
-                review = StyleReview(**review_data)
-                self._log_review_results(review)
+            review = StyleReview(**review_data)
+            self._log_review_results(review)
 
-                return review.model_dump()
+            return review.model_dump()
 
         except Exception as e:
             logger.error(f"Style review failed: {e}")

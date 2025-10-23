@@ -9,13 +9,13 @@ from amplifier_module_markdown_utils import extract_title
 from amplifier_module_markdown_utils import slugify
 from amplifier_module_style_extraction import StyleExtractor
 
-from amplifier.utils.logger import get_logger
+import logging
 
 from .content_phase import ContentPhase
 from .illustration_phase import IllustrationPhase
 from .session import SessionManager as StateManager
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 @click.command()
