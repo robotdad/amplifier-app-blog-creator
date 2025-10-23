@@ -1,0 +1,64 @@
+[project]
+name = "amplifier-app-blog-creator"
+version = "0.1.0"
+description = "Complete blog creation workflow: content generation and optional illustration"
+authors = [
+    {name = "Brian Krabach", email = "briankrabach@example.com"}
+]
+requires-python = ">=3.11"
+dependencies = [
+    "amplifier-core",
+    "amplifier-module-style-extraction",
+    "amplifier-module-image-generation",
+    "amplifier-module-markdown-utils",
+    "click>=8.0.0",
+    "pydantic>=2.0.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pyright>=1.1.0",
+]
+
+[project.scripts]
+blog-creator = "amplifier_app_blog_creator.main:main"
+
+[tool.uv.sources.amplifier-core]
+git = "https://github.com/microsoft/amplifier-dev"
+subdirectory = "amplifier-core"
+branch = "main"
+
+[tool.uv.sources.amplifier-module-style-extraction]
+git = "https://github.com/robotdad/amplifier-dev"
+subdirectory = "amplifier-module-style-extraction"
+branch = "main"
+
+[tool.uv.sources.amplifier-module-image-generation]
+git = "https://github.com/robotdad/amplifier-dev"
+subdirectory = "amplifier-module-image-generation"
+branch = "main"
+
+[tool.uv.sources.amplifier-module-markdown-utils]
+git = "https://github.com/robotdad/amplifier-dev"
+subdirectory = "amplifier-module-markdown-utils"
+branch = "main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/amplifier_app_blog_creator"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.pyright]
+include = ["src", "tests"]
+exclude = [".venv", "__pycache__", "*.egg-info"]
+pythonVersion = "3.11"
+typeCheckingMode = "basic"
