@@ -7,12 +7,9 @@ authors = [
 ]
 requires-python = ">=3.11"
 dependencies = [
-    "amplifier-core",
-    "amplifier-module-style-extraction",
-    "amplifier-module-image-generation",
-    "amplifier-module-markdown-utils",
     "click>=8.0.0",
     "pydantic>=2.0.0",
+    "pydantic-ai>=0.0.14",
     "python-dotenv>=1.0.0",
 ]
 
@@ -21,30 +18,11 @@ dev = [
     "pytest>=7.0.0",
     "pytest-asyncio>=0.21.0",
     "pyright>=1.1.0",
+    "ruff>=0.1.0",
 ]
 
 [project.scripts]
 blog-creator = "amplifier_app_blog_creator.main:main"
-
-[tool.uv.sources.amplifier-core]
-git = "https://github.com/microsoft/amplifier-dev"
-subdirectory = "amplifier-core"
-branch = "main"
-
-[tool.uv.sources.amplifier-module-style-extraction]
-git = "https://github.com/robotdad/amplifier-dev"
-subdirectory = "amplifier-module-style-extraction"
-branch = "main"
-
-[tool.uv.sources.amplifier-module-image-generation]
-git = "https://github.com/robotdad/amplifier-dev"
-subdirectory = "amplifier-module-image-generation"
-branch = "main"
-
-[tool.uv.sources.amplifier-module-markdown-utils]
-git = "https://github.com/robotdad/amplifier-dev"
-subdirectory = "amplifier-module-markdown-utils"
-branch = "main"
 
 [build-system]
 requires = ["hatchling"]
