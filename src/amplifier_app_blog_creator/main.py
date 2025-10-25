@@ -6,7 +6,6 @@ import sys
 from pathlib import Path
 
 import click
-from amplifier_module_markdown_utils import MarkdownImageUpdater
 from amplifier_module_markdown_utils import extract_title
 from amplifier_module_markdown_utils import slugify
 from amplifier_module_style_extraction import StyleExtractor
@@ -157,9 +156,21 @@ def main(
     )
 
     if success:
-        logger.info("\n✨ Blog creation complete!")
+        print("\n" + "=" * 60)
+        print("✨ BLOG CREATION COMPLETE")
+        print("=" * 60)
+
         if state_manager.state.output_path:
-            logger.info(f"📄 Blog saved to: {state_manager.state.output_path}")
+            print(f"\n📄 Blog post: {state_manager.state.output_path}")
+
+        if with_images and hasattr(state_manager.state, 'illustrated_output_path'):
+            illustrated_path = state_manager.state.illustrated_output_path
+            if illustrated_path:
+                print(f"🎨 Illustrated version: {illustrated_path}")
+                print(f"   (Images embedded at contextually relevant sections)")
+
+        print(f"\n📁 Session directory: {state_manager.session_dir}")
+        print("=" * 60 + "\n")
         return 0
 
     logger.error("\n❌ Blog creation failed")
@@ -235,50 +246,28 @@ async def run_pipeline(
 
         # Phase 3: Illustration (optional)
         if with_images:
-            logger.info("\n🎨 Generating illustrations...")
+            logger.info("\n🎨 Generating contextual illustrations...")
             illustration_phase = IllustrationPhase()
 
             images_dir = state_manager.session_dir / "images"
             images_dir.mkdir(exist_ok=True)
 
-            generated_images = await illustration_phase.run(
+            # New illustration phase handles everything internally:
+            # 1. Analyzes content for illustration points
+            # 2. Generates contextual prompts
+            # 3. Creates images
+            # 4. Inserts at specific line numbers
+            illustrated_path = await illustration_phase.run(
                 article_path=output_path,
                 output_dir=images_dir,
                 style=image_style,
                 max_images=max_images,
             )
 
-            if generated_images:
-                logger.info(f"✅ Generated {len(generated_images)} images in {images_dir}")
-
-                # Insert images into markdown
-                logger.info("📝 Inserting images into blog post...")
-                updater = MarkdownImageUpdater()
-                content = output_path.read_text()
-
-                # Insert each image
-                for i, image_path in enumerate(generated_images, 1):
-                    # Make path relative to markdown file
-                    relative_path = f"./images/{image_path.name}"
-                    alt_text = f"Illustration {i}"
-
-                    # Insert at appropriate position (simple: evenly distributed)
-                    # TODO: Could be smarter about placement based on content
-                    content = updater.insert_image(
-                        content=content,
-                        image_path=relative_path,
-                        alt_text=alt_text,
-                        placement="at_line",
-                        line_number=None,  # Will place strategically
-                    )
-
-                # Save illustrated version
-                illustrated_path = state_manager.session_dir / f"illustrated_{output_path.name}"
-                illustrated_path.write_text(content)
+            if illustrated_path != output_path:
                 state_manager.state.illustrated_output_path = str(illustrated_path)
                 state_manager.save()
-
-                logger.info(f"✅ Illustrated blog post saved to: {illustrated_path}")
+                logger.info(f"✅ Illustrated blog post: {illustrated_path}")
 
         state_manager.mark_complete()
         return True
