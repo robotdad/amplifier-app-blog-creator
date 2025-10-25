@@ -1,14 +1,15 @@
 """Blog Creator CLI - Main entry point."""
 
 import asyncio
+import logging
 import sys
 from pathlib import Path
 
 import click
-from amplifier_module_markdown_utils import extract_title, slugify, MarkdownImageUpdater
+from amplifier_module_markdown_utils import MarkdownImageUpdater
+from amplifier_module_markdown_utils import extract_title
+from amplifier_module_markdown_utils import slugify
 from amplifier_module_style_extraction import StyleExtractor
-
-import logging
 
 from .content_phase import ContentPhase
 from .illustration_phase import IllustrationPhase
@@ -268,7 +269,7 @@ async def run_pipeline(
                         image_path=relative_path,
                         alt_text=alt_text,
                         placement="at_line",
-                        line_number=None  # Will place strategically
+                        line_number=None,  # Will place strategically
                     )
 
                 # Save illustrated version

@@ -143,6 +143,10 @@ name = "amplifier-app-blog-creator"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "amplifier-module-image-generation" },
+    { name = "amplifier-module-markdown-utils" },
+    { name = "amplifier-module-style-extraction" },
+    { name = "anthropic" },
     { name = "click" },
     { name = "pydantic" },
     { name = "pydantic-ai" },
@@ -159,6 +163,10 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "amplifier-module-image-generation", git = "https://github.com/robotdad/amplifier-module-image-generation?branch=main" },
+    { name = "amplifier-module-markdown-utils", git = "https://github.com/robotdad/amplifier-module-markdown-utils?branch=main" },
+    { name = "amplifier-module-style-extraction", git = "https://github.com/robotdad/amplifier-module-style-extraction?branch=main" },
+    { name = "anthropic", specifier = ">=0.25.0" },
     { name = "click", specifier = ">=8.0.0" },
     { name = "pydantic", specifier = ">=2.0.0" },
     { name = "pydantic-ai", specifier = ">=0.0.14" },
@@ -169,6 +177,31 @@ requires-dist = [
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.1.0" },
 ]
 provides-extras = ["dev"]
+
+[[package]]
+name = "amplifier-module-image-generation"
+version = "0.1.0"
+source = { git = "https://github.com/robotdad/amplifier-module-image-generation?branch=main#424e8e74c291535ffd197b7dfc47d9a0ff4cfb55" }
+dependencies = [
+    { name = "aiohttp" },
+    { name = "google-genai" },
+    { name = "openai" },
+    { name = "pydantic" },
+]
+
+[[package]]
+name = "amplifier-module-markdown-utils"
+version = "0.1.0"
+source = { git = "https://github.com/robotdad/amplifier-module-markdown-utils?branch=main#40207d135d33e719dd84631a0b2305b55836fc96" }
+
+[[package]]
+name = "amplifier-module-style-extraction"
+version = "0.1.0"
+source = { git = "https://github.com/robotdad/amplifier-module-style-extraction?branch=main#b85de8867342b835172570767fdef09dbabf400b" }
+dependencies = [
+    { name = "pydantic" },
+    { name = "pydantic-ai" },
+]
 
 [[package]]
 name = "annotated-types"

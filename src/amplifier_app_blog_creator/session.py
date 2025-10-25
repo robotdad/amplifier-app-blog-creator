@@ -171,7 +171,8 @@ class SessionManager:
         self.state.iteration += 1
         logger.info(f"Iteration {self.state.iteration}/{self.state.max_iterations}")
 
-        if self.state.iteration > self.state.max_iterations:
+        # Check for max_iterations being None or exceeded
+        if self.state.max_iterations is not None and self.state.iteration > self.state.max_iterations:
             logger.warning(f"Exceeded max iterations ({self.state.max_iterations})")
             return False
 

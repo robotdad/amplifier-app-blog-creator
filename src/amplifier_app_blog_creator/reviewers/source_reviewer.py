@@ -2,7 +2,6 @@
 Source reviewer - Verifies factual accuracy and proper attribution.
 """
 
-import json
 import logging
 import os
 from typing import Any
@@ -10,6 +9,8 @@ from typing import Any
 from anthropic import AsyncAnthropic
 from pydantic import BaseModel
 from pydantic import Field
+
+from ..utils.llm_parsing import parse_llm_json
 
 logger = logging.getLogger(__name__)
 
@@ -110,22 +111,17 @@ Return JSON with:
                 logger.error("No response from source review, using default")
                 return self._default_review()
 
-            # Try to parse JSON response
-            try:
-                content = response.content[0].text.strip()
-                # Remove markdown code blocks if present
-                if content.startswith("```"):
-                    content = content.split("```")[1]
-                    if content.startswith("json"):
-                        content = content[4:]
-                parsed = json.loads(content.strip())
-            except json.JSONDecodeError as e:
-                logger.error(f"Failed to parse source review JSON: {e}, using default")
+            # Parse JSON response with defensive parsing
+            content = response.content[0].text.strip()
+            parsed = parse_llm_json(content, default=None)
+
+            if parsed is None:
+                logger.error("Failed to parse source review JSON, using default")
                 return self._default_review()
 
             # Validate and structure response
-            issues = parsed.get("issues", [])
-            suggestions = parsed.get("suggestions", [])
+            issues = parsed.get("issues", [])  # type: ignore
+            suggestions = parsed.get("suggestions", [])  # type: ignore
 
             # Convert dict items to strings if needed
             if issues and isinstance(issues[0], dict):
@@ -135,16 +131,15 @@ Return JSON with:
 
             if suggestions and isinstance(suggestions[0], dict):
                 suggestions = [
-                    item.get("description", str(item)) if isinstance(item, dict) else str(item)
-                    for item in suggestions
+                    item.get("description", str(item)) if isinstance(item, dict) else str(item) for item in suggestions
                 ]
 
             review_data = {
-                "accuracy_score": float(parsed.get("accuracy_score", 0.9)),
-                "has_issues": bool(parsed.get("has_issues", False)),
+                "accuracy_score": float(parsed.get("accuracy_score", 0.9)),  # type: ignore
+                "has_issues": bool(parsed.get("has_issues", False)),  # type: ignore
                 "issues": issues,
                 "suggestions": suggestions,
-                "needs_revision": bool(parsed.get("needs_revision", False)),
+                "needs_revision": bool(parsed.get("needs_revision", False)),  # type: ignore
             }
 
             # Force needs_revision if accuracy too low or issues found
