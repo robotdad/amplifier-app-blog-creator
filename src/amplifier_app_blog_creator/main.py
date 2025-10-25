@@ -5,8 +5,7 @@ import sys
 from pathlib import Path
 
 import click
-from amplifier_module_markdown_utils import extract_title
-from amplifier_module_markdown_utils import slugify
+from amplifier_module_markdown_utils import extract_title, slugify, MarkdownImageUpdater
 from amplifier_module_style_extraction import StyleExtractor
 
 import logging
@@ -250,6 +249,35 @@ async def run_pipeline(
 
             if generated_images:
                 logger.info(f"✅ Generated {len(generated_images)} images in {images_dir}")
+
+                # Insert images into markdown
+                logger.info("📝 Inserting images into blog post...")
+                updater = MarkdownImageUpdater()
+                content = output_path.read_text()
+
+                # Insert each image
+                for i, image_path in enumerate(generated_images, 1):
+                    # Make path relative to markdown file
+                    relative_path = f"./images/{image_path.name}"
+                    alt_text = f"Illustration {i}"
+
+                    # Insert at appropriate position (simple: evenly distributed)
+                    # TODO: Could be smarter about placement based on content
+                    content = updater.insert_image(
+                        content=content,
+                        image_path=relative_path,
+                        alt_text=alt_text,
+                        placement="at_line",
+                        line_number=None  # Will place strategically
+                    )
+
+                # Save illustrated version
+                illustrated_path = state_manager.session_dir / f"illustrated_{output_path.name}"
+                illustrated_path.write_text(content)
+                state_manager.state.illustrated_output_path = str(illustrated_path)
+                state_manager.save()
+
+                logger.info(f"✅ Illustrated blog post saved to: {illustrated_path}")
 
         state_manager.mark_complete()
         return True
