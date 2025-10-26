@@ -10,9 +10,9 @@ from pathlib import Path
 from amplifier_module_image_generation import ImageGenerator
 from openai import OpenAI
 
-from amplifier.ccsdk_toolkit import ClaudeSession
-from amplifier.ccsdk_toolkit import SessionOptions
-from amplifier.ccsdk_toolkit.defensive.llm_parsing import parse_llm_json
+from anthropic import AsyncAnthropic
+from .utils.llm_parsing import parse_llm_json
+import os
 
 from .models import IllustrationPoint
 from .models import ImagePrompt
@@ -276,21 +276,20 @@ Return JSON with:
   }}
 }}"""
 
-        async with ClaudeSession(
-            options=SessionOptions(
-                system_prompt="You are an expert at creating image generation prompts. Respond with JSON only.",
-                stream_output=False,
-            )
-        ) as session:
-            response = await session.query(prompt_text)
+        client = AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
-            if response.error:
-                raise RuntimeError(f"Claude query failed: {response.error}")
+        response = await client.messages.create(
+            model="claude-3-5-haiku-20241022",
+            max_tokens=2048,
+            system="You are an expert at creating image generation prompts. Respond with JSON only.",
+            messages=[{"role": "user", "content": prompt_text}]
+        )
 
-            if not response.content:
-                raise RuntimeError("Empty response from Claude")
+        if not response.content:
+            raise RuntimeError("Empty response from Claude")
 
-            parsed = parse_llm_json(response.content)
+        message_content = response.content[0].text
+        parsed = parse_llm_json(message_content)
 
         if not isinstance(parsed, dict):
             raise ValueError("Expected dict response from LLM")
