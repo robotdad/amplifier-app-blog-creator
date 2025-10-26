@@ -93,6 +93,8 @@ class IllustrationPhase:
 
         prompt = f"""Analyze this markdown article and identify the {max_images} best places to add illustrations.
 
+IMPORTANT: Distribute illustrations evenly throughout the ENTIRE article, not clustered at the beginning.
+
 For each illustration point, provide:
 - section_title: The section heading
 - section_index: Index of the section (0-based)
@@ -102,15 +104,15 @@ For each illustration point, provide:
 - importance: "high", "medium", or "low"
 - suggested_placement: "before_section", "after_intro", or "mid_section"
 
-Focus on:
-1. Key concepts that would benefit from visual explanation
-2. Section transitions that need visual breaks
-3. Complex ideas that images could clarify
-4. Opening sections that set the tone
+Selection criteria (in order of priority):
+1. Distribute evenly from beginning to end of article
+2. Major section transitions that need visual breaks
+3. Complex ideas or key concepts that images could clarify
+4. Ensure at least one image in the latter half of the article
 
 Article content:
 ```markdown
-{content[:8000]}
+{content}
 ```
 
 Return JSON with structure:
