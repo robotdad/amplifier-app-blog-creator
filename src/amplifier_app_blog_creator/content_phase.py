@@ -12,6 +12,7 @@ from .feedback import UserFeedbackHandler
 from .reviewers.source_reviewer import SourceReviewer
 from .reviewers.style_reviewer import StyleReviewer
 from .session import SessionManager as StateManager
+from .vendored_toolkit import log_stage
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +50,7 @@ class ContentPhase:
         Returns:
             True if successful
         """
+        log_stage("Content Creation", "Generating blog post with style matching")
         logger.info("Starting content creation phase")
 
         # Store inputs

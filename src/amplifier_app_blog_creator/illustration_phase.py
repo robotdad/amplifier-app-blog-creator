@@ -16,6 +16,8 @@ import os
 
 from .models import IllustrationPoint
 from .models import ImagePrompt
+from .vendored_toolkit import log_stage
+from .vendored_toolkit import ProgressReporter
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +48,7 @@ class IllustrationPhase:
         Returns:
             Path to illustrated markdown file
         """
+        log_stage("Illustration Generation", "Creating contextual images")
         logger.info(f"Starting contextual illustration generation (max {max_images} images)")
 
         # Stage 1: Analyze content to identify illustration points
@@ -459,7 +462,8 @@ Return JSON with:
         output_dir.mkdir(parents=True, exist_ok=True)
         images = {}
 
-        for _i, prompt in enumerate(prompts, 1):
+        progress = ProgressReporter(len(prompts), "Generating images", show_items=True)
+        for prompt in prompts:
             try:
                 image_path = output_dir / f"{prompt.illustration_id}.png"
 
@@ -471,13 +475,16 @@ Return JSON with:
 
                 if result.success:
                     images[prompt.illustration_id] = result.local_path
-                    logger.info(f"  ✓ Generated {prompt.illustration_id} (cost: ${result.cost:.4f})")
+                    progress.update(f"{prompt.illustration_id} (${result.cost:.4f})")
                 else:
                     logger.error(f"  ✗ Failed {prompt.illustration_id}: {result.error}")
+                    progress.update(f"{prompt.illustration_id} (failed)")
 
             except Exception as e:
                 logger.error(f"  ✗ Failed {prompt.illustration_id}: {e}")
+                progress.update(f"{prompt.illustration_id} (error)")
 
+        progress.complete()
         return images
 
     async def _update_markdown(

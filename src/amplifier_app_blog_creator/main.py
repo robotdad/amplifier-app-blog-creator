@@ -13,6 +13,8 @@ from amplifier_module_style_extraction import StyleExtractor
 from .content_phase import ContentPhase
 from .illustration_phase import IllustrationPhase
 from .session import SessionManager as StateManager
+from .vendored_toolkit import log_stage
+from .vendored_toolkit import safe_write_text
 
 logger = logging.getLogger(__name__)
 
@@ -203,6 +205,8 @@ async def run_pipeline(
         True if successful
     """
     try:
+        log_stage("Blog Creator Pipeline", f"Idea: {idea.name}")
+
         # Load brain dump
         brain_dump = idea.read_text()
         logger.info(f"Loaded idea: {idea.name}")
@@ -238,7 +242,7 @@ async def run_pipeline(
         else:
             output_path = output or state_manager.session_dir / "blog_post.md"
 
-        output_path.write_text(state_manager.state.current_draft)
+        safe_write_text(state_manager.state.current_draft, output_path)
         state_manager.state.output_path = str(output_path)
         state_manager.save()
 
