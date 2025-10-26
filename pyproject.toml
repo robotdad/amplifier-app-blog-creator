@@ -53,8 +53,14 @@ git = "https://github.com/robotdad/amplifier-module-markdown-utils"
 branch = "main"
 
 [tool.uv.sources.amplifier-app-cli]
-path = "../amplifier-app-cli"
-editable = true
+git = "https://github.com/microsoft/amplifier-dev"
+subdirectory = "amplifier-app-cli"
+branch = "main"
+
+[tool.uv.sources.amplifier-core]
+git = "https://github.com/microsoft/amplifier-dev"
+subdirectory = "amplifier-core"
+branch = "main"
 
 [tool.pyright]
 include = ["src", "tests"]
