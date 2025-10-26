@@ -77,8 +77,7 @@ class IllustrationPhase:
     async def _analyze_content(self, article_path: Path, max_images: int) -> list[IllustrationPoint]:
         """Analyze article content to identify specific illustration points.
 
-        Uses LLM to analyze content and identify where images would be most effective,
-        including specific line numbers and placement preferences.
+        Uses algorithmic distribution to ensure even spacing, then LLM for contextual details.
 
         Args:
             article_path: Path to markdown article
@@ -89,6 +88,86 @@ class IllustrationPhase:
         """
         logger.info("Analyzing content for illustration opportunities...")
 
+        content = article_path.read_text(encoding="utf-8")
+        lines = content.split("\n")
+
+        # Find all section headers (## level 2 and below)
+        sections = []
+        for i, line in enumerate(lines):
+            if line.startswith("##") and not line.startswith("###"):
+                title = line.lstrip("#").strip()
+                sections.append((i, title))
+
+        if not sections:
+            # Fallback: create evenly spaced points
+            return self._create_fallback_points(lines, max_images)
+
+        # Force even distribution across document
+        total_sections = len(sections)
+        if max_images >= total_sections:
+            # Use all sections
+            selected_indices = list(range(total_sections))
+        else:
+            # Evenly distribute selections across all sections
+            step = total_sections / max_images
+            selected_indices = [int(i * step) for i in range(max_images)]
+
+        # Create illustration points at selected sections
+        points = []
+        for idx in selected_indices:
+            line_num, section_title = sections[idx]
+
+            # Get context
+            context_before = lines[max(0, line_num - 1)] if line_num > 0 else ""
+            context_after = lines[min(len(lines) - 1, line_num + 1)] if line_num < len(lines) - 1 else ""
+
+            points.append(IllustrationPoint(
+                section_title=section_title,
+                section_index=idx,
+                line_number=line_num,
+                context_before=context_before[:100],
+                context_after=context_after[:100],
+                importance="high",
+                suggested_placement="before_section"
+            ))
+
+        logger.info(f"Selected {len(points)} evenly distributed sections from {total_sections} total")
+        return points
+
+    def _create_fallback_points(self, lines: list[str], max_images: int) -> list[IllustrationPoint]:
+        """Create evenly spaced fallback points when no sections found.
+
+        Args:
+            lines: Article lines
+            max_images: Number of points to create
+
+        Returns:
+            List of evenly spaced illustration points
+        """
+        total_lines = len(lines)
+        step = total_lines // (max_images + 1)
+
+        points = []
+        for i in range(max_images):
+            line_num = (i + 1) * step
+            points.append(IllustrationPoint(
+                section_title=f"Section {i+1}",
+                section_index=i,
+                line_number=line_num,
+                context_before="",
+                context_after="",
+                importance="medium",
+                suggested_placement="mid_section"
+            ))
+
+        return points
+
+    async def _analyze_content_with_llm(self, article_path: Path, max_images: int) -> list[IllustrationPoint]:
+        """DEPRECATED: LLM-based analysis (kept for reference).
+
+        The LLM consistently clusters images at the beginning despite instructions.
+        Using algorithmic distribution instead for reliable even spacing.
+        """
         content = article_path.read_text(encoding="utf-8")
 
         prompt = f"""Analyze this markdown article and identify the {max_images} best places to add illustrations.
