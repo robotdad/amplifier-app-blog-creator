@@ -5,18 +5,17 @@ creates images, and inserts them at appropriate line numbers in the markdown.
 """
 
 import logging
-import os
 from pathlib import Path
 
 from amplifier_module_image_generation import ImageGenerator
-from anthropic import AsyncAnthropic
 from openai import OpenAI
-from amplifier_app_cli.toolkit.utilities.progress import ProgressReporter
-from amplifier_app_cli.toolkit.utilities.progress import log_stage
+
+from anthropic import AsyncAnthropic
+from .utils.llm_parsing import parse_llm_json
+import os
 
 from .models import IllustrationPoint
 from .models import ImagePrompt
-from .utils.llm_parsing import parse_llm_json
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +46,6 @@ class IllustrationPhase:
         Returns:
             Path to illustrated markdown file
         """
-        log_stage("Illustration Generation", "Creating contextual images for blog post")
         logger.info(f"Starting contextual illustration generation (max {max_images} images)")
 
         # Stage 1: Analyze content to identify illustration points
@@ -146,17 +144,15 @@ class IllustrationPhase:
             context_before = lines[max(0, line_num - 1)] if line_num > 0 else ""
             context_after = lines[min(len(lines) - 1, line_num + 1)] if line_num < len(lines) - 1 else ""
 
-            points.append(
-                IllustrationPoint(
-                    section_title=section_title,
-                    section_index=idx,
-                    line_number=line_num,
-                    context_before=context_before[:100],
-                    context_after=context_after[:100],
-                    importance="high",
-                    suggested_placement="before_section",
-                )
-            )
+            points.append(IllustrationPoint(
+                section_title=section_title,
+                section_index=idx,
+                line_number=line_num,
+                context_before=context_before[:100],
+                context_after=context_after[:100],
+                importance="high",
+                suggested_placement="before_section"
+            ))
 
         logger.info(f"Selected sections: {[p.section_title for p in points]}")
         return points
@@ -177,17 +173,15 @@ class IllustrationPhase:
         points = []
         for i in range(max_images):
             line_num = (i + 1) * step
-            points.append(
-                IllustrationPoint(
-                    section_title=f"Section {i + 1}",
-                    section_index=i,
-                    line_number=line_num,
-                    context_before="",
-                    context_after="",
-                    importance="medium",
-                    suggested_placement="mid_section",
-                )
-            )
+            points.append(IllustrationPoint(
+                section_title=f"Section {i+1}",
+                section_index=i,
+                line_number=line_num,
+                context_before="",
+                context_after="",
+                importance="medium",
+                suggested_placement="mid_section"
+            ))
 
         return points
 
@@ -392,7 +386,7 @@ Return JSON with:
             model="claude-3-5-haiku-20241022",
             max_tokens=2048,
             system="You are an expert at creating image generation prompts. Respond with JSON only.",
-            messages=[{"role": "user", "content": prompt_text}],
+            messages=[{"role": "user", "content": prompt_text}]
         )
 
         if not response.content:
@@ -465,8 +459,7 @@ Return JSON with:
         output_dir.mkdir(parents=True, exist_ok=True)
         images = {}
 
-        progress = ProgressReporter(len(prompts), "Generating images", show_items=True)
-        for prompt in prompts:
+        for _i, prompt in enumerate(prompts, 1):
             try:
                 image_path = output_dir / f"{prompt.illustration_id}.png"
 
@@ -478,17 +471,13 @@ Return JSON with:
 
                 if result.success:
                     images[prompt.illustration_id] = result.local_path
-                    progress.update(prompt.point.section_title)
                     logger.info(f"  ✓ Generated {prompt.illustration_id} (cost: ${result.cost:.4f})")
                 else:
-                    progress.update(f"{prompt.point.section_title} (failed)")
                     logger.error(f"  ✗ Failed {prompt.illustration_id}: {result.error}")
 
             except Exception as e:
-                progress.update(f"{prompt.point.section_title} (error)")
                 logger.error(f"  ✗ Failed {prompt.illustration_id}: {e}")
 
-        progress.complete()
         return images
 
     async def _update_markdown(

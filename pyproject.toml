@@ -7,7 +7,6 @@ authors = [
 ]
 requires-python = ">=3.11"
 dependencies = [
-    "amplifier-app-cli",
     "amplifier-module-style-extraction",
     "amplifier-module-image-generation",
     "amplifier-module-markdown-utils",
@@ -50,16 +49,6 @@ branch = "main"
 
 [tool.uv.sources.amplifier-module-markdown-utils]
 git = "https://github.com/robotdad/amplifier-module-markdown-utils"
-branch = "main"
-
-[tool.uv.sources.amplifier-app-cli]
-git = "https://github.com/microsoft/amplifier-dev"
-subdirectory = "amplifier-app-cli"
-branch = "main"
-
-[tool.uv.sources.amplifier-core]
-git = "https://github.com/microsoft/amplifier-dev"
-subdirectory = "amplifier-core"
 branch = "main"
 
 [tool.pyright]

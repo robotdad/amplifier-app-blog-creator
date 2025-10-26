@@ -9,8 +9,6 @@ import click
 from amplifier_module_markdown_utils import extract_title
 from amplifier_module_markdown_utils import slugify
 from amplifier_module_style_extraction import StyleExtractor
-from amplifier_app_cli.toolkit.utilities.file_ops import safe_write_text
-from amplifier_app_cli.toolkit.utilities.progress import log_stage
 
 from .content_phase import ContentPhase
 from .illustration_phase import IllustrationPhase
@@ -134,7 +132,6 @@ def main(
         state_manager.state.additional_instructions = instructions
     state_manager.save()
 
-    log_stage("Blog Creator Pipeline", f"Idea: {idea.name}")
     logger.info("🚀 Starting Blog Creator Pipeline")
     logger.info(f"  Session: {state_manager.session_dir}")
     logger.info(f"  Idea: {idea.name}")
@@ -166,11 +163,11 @@ def main(
         if state_manager.state.output_path:
             print(f"\n📄 Blog post: {state_manager.state.output_path}")
 
-        if with_images and hasattr(state_manager.state, "illustrated_output_path"):
+        if with_images and hasattr(state_manager.state, 'illustrated_output_path'):
             illustrated_path = state_manager.state.illustrated_output_path
             if illustrated_path:
                 print(f"🎨 Illustrated version: {illustrated_path}")
-                print("   (Images embedded at contextually relevant sections)")
+                print(f"   (Images embedded at contextually relevant sections)")
 
         print(f"\n📁 Session directory: {state_manager.session_dir}")
         print("=" * 60 + "\n")
@@ -241,7 +238,7 @@ async def run_pipeline(
         else:
             output_path = output or state_manager.session_dir / "blog_post.md"
 
-        safe_write_text(state_manager.state.current_draft, output_path)
+        output_path.write_text(state_manager.state.current_draft)
         state_manager.state.output_path = str(output_path)
         state_manager.save()
 

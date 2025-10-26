@@ -8,6 +8,7 @@ Consolidates session management from blog_writer and article_illustrator
 into a unified session model supporting both content and illustration phases.
 """
 
+import json
 import logging
 import re
 from dataclasses import asdict
@@ -16,10 +17,6 @@ from dataclasses import field
 from datetime import datetime
 from pathlib import Path
 from typing import Any
-
-from amplifier_app_cli.toolkit.utilities.file_ops import read_json
-from amplifier_app_cli.toolkit.utilities.file_ops import safe_write_text
-from amplifier_app_cli.toolkit.utilities.file_ops import write_json
 
 logger = logging.getLogger(__name__)
 
@@ -134,9 +131,8 @@ class SessionManager:
         """Load state from file or create new."""
         if self.state_file.exists():
             try:
-                data = read_json(self.state_file)
-                if not isinstance(data, dict):
-                    raise ValueError("State file must contain a dictionary")
+                with open(self.state_file, encoding="utf-8") as f:
+                    data = json.load(f)
                 logger.info(f"Resumed state from: {self.state_file}")
                 logger.info(f"  Stage: {data.get('stage', 'unknown')}")
                 logger.info(f"  Iteration: {data.get('iteration', 0)}")
@@ -153,7 +149,8 @@ class SessionManager:
 
         try:
             state_dict = asdict(self.state)
-            write_json(state_dict, self.state_file)
+            with open(self.state_file, "w", encoding="utf-8") as f:
+                json.dump(state_dict, f, indent=2, ensure_ascii=False)
             logger.debug(f"State saved to: {self.state_file}")
         except Exception as e:
             logger.error(f"Failed to save state: {e}")
@@ -199,7 +196,7 @@ class SessionManager:
         self.state.current_draft = draft
         draft_file = self.session_dir / f"draft_iter_{self.state.iteration}.md"
         try:
-            safe_write_text(draft, draft_file)
+            Path(draft_file).expanduser().write_text(draft)
             logger.info(f"Draft saved to: {draft_file}")
         except Exception as e:
             logger.warning(f"Could not save draft file: {e}")

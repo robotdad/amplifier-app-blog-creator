@@ -7,8 +7,6 @@ import asyncio
 import logging
 from pathlib import Path
 
-from amplifier_app_cli.toolkit.utilities.progress import log_stage
-
 from .blog_writer import BlogWriter
 from .feedback import UserFeedbackHandler
 from .reviewers.source_reviewer import SourceReviewer
@@ -51,7 +49,6 @@ class ContentPhase:
         Returns:
             True if successful
         """
-        log_stage("Content Creation", "Generating blog post with style matching")
         logger.info("Starting content creation phase")
 
         # Store inputs
