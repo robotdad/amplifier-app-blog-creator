@@ -9,8 +9,8 @@ import click
 from amplifier_module_markdown_utils import extract_title
 from amplifier_module_markdown_utils import slugify
 from amplifier_module_style_extraction import StyleExtractor
-from toolkit.utilities.file_ops import safe_write_text
-from toolkit.utilities.progress import log_stage
+from amplifier_app_cli.toolkit.utilities.file_ops import safe_write_text
+from amplifier_app_cli.toolkit.utilities.progress import log_stage
 
 from .content_phase import ContentPhase
 from .illustration_phase import IllustrationPhase

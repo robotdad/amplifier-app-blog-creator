@@ -11,8 +11,8 @@ from pathlib import Path
 from amplifier_module_image_generation import ImageGenerator
 from anthropic import AsyncAnthropic
 from openai import OpenAI
-from toolkit.utilities.progress import ProgressReporter
-from toolkit.utilities.progress import log_stage
+from amplifier_app_cli.toolkit.utilities.progress import ProgressReporter
+from amplifier_app_cli.toolkit.utilities.progress import log_stage
 
 from .models import IllustrationPoint
 from .models import ImagePrompt

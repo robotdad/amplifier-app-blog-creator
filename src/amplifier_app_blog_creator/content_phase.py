@@ -7,7 +7,7 @@ import asyncio
 import logging
 from pathlib import Path
 
-from toolkit.utilities.progress import log_stage
+from amplifier_app_cli.toolkit.utilities.progress import log_stage
 
 from .blog_writer import BlogWriter
 from .feedback import UserFeedbackHandler

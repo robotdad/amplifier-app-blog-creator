@@ -17,9 +17,9 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from toolkit.utilities.file_ops import read_json
-from toolkit.utilities.file_ops import safe_write_text
-from toolkit.utilities.file_ops import write_json
+from amplifier_app_cli.toolkit.utilities.file_ops import read_json
+from amplifier_app_cli.toolkit.utilities.file_ops import safe_write_text
+from amplifier_app_cli.toolkit.utilities.file_ops import write_json
 
 logger = logging.getLogger(__name__)
 
