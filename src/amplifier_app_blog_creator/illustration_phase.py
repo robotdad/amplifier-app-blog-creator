@@ -75,23 +75,27 @@ class IllustrationPhase:
         return illustrated_path
 
     async def _analyze_content(self, article_path: Path, max_images: int) -> list[IllustrationPoint]:
-        """Analyze article content to identify specific illustration points.
+        """Identify illustration points using clear distribution strategy.
 
-        Uses algorithmic distribution to ensure even spacing, then LLM for contextual details.
+        Distribution strategy:
+        - 1 image: middle
+        - 2 images: intro, closing
+        - 3 images: intro, middle, closing (default)
+        - 4+ images: evenly distributed segments
 
         Args:
             article_path: Path to markdown article
-            max_images: Maximum illustration points to identify
+            max_images: Number of images to generate
 
         Returns:
-            List of illustration points with line numbers and context
+            List of illustration points with balanced distribution
         """
-        logger.info("Analyzing content for illustration opportunities...")
+        logger.info(f"Identifying {max_images} illustration points with balanced distribution...")
 
         content = article_path.read_text(encoding="utf-8")
         lines = content.split("\n")
 
-        # Find all section headers (## level 2 and below)
+        # Find all ## level sections (excluding ###)
         sections = []
         for i, line in enumerate(lines):
             if line.startswith("##") and not line.startswith("###"):
@@ -99,25 +103,44 @@ class IllustrationPhase:
                 sections.append((i, title))
 
         if not sections:
-            # Fallback: create evenly spaced points
+            logger.warning("No sections found, using fallback distribution")
             return self._create_fallback_points(lines, max_images)
 
-        # Force even distribution across document
         total_sections = len(sections)
-        if max_images >= total_sections:
-            # Use all sections
-            selected_indices = list(range(total_sections))
+        logger.info(f"Found {total_sections} sections")
+
+        # Select sections based on number of images requested
+        if max_images == 1:
+            # Middle section
+            selected = [total_sections // 2]
+            logger.info("Distribution: middle")
+
+        elif max_images == 2:
+            # Intro and closing
+            selected = [0, total_sections - 1]
+            logger.info("Distribution: intro, closing")
+
+        elif max_images == 3:
+            # Intro, middle, closing
+            middle = total_sections // 2
+            selected = [0, middle, total_sections - 1]
+            logger.info("Distribution: intro, middle, closing")
+
         else:
-            # Evenly distribute selections across all sections
+            # Evenly distribute across all sections
             step = total_sections / max_images
-            selected_indices = [int(i * step) for i in range(max_images)]
+            selected = [int(i * step) for i in range(max_images)]
+            logger.info(f"Distribution: evenly across {max_images} segments")
 
         # Create illustration points at selected sections
         points = []
-        for idx in selected_indices:
+        for idx in selected:
+            if idx >= total_sections:
+                idx = total_sections - 1
+
             line_num, section_title = sections[idx]
 
-            # Get context
+            # Get context around this point
             context_before = lines[max(0, line_num - 1)] if line_num > 0 else ""
             context_after = lines[min(len(lines) - 1, line_num + 1)] if line_num < len(lines) - 1 else ""
 
@@ -131,7 +154,7 @@ class IllustrationPhase:
                 suggested_placement="before_section"
             ))
 
-        logger.info(f"Selected {len(points)} evenly distributed sections from {total_sections} total")
+        logger.info(f"Selected sections: {[p.section_title for p in points]}")
         return points
 
     def _create_fallback_points(self, lines: list[str], max_images: int) -> list[IllustrationPoint]:
