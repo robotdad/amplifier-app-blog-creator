@@ -112,7 +112,7 @@ if not extractor:
 **Benefits**:
 - Each stage independently testable
 - No blocking in core logic
-- Ready for web interface (future)
+- Ready for web interface
 - Better separation of concerns
 - Clearer progress visibility
 
@@ -130,12 +130,67 @@ if not extractor:
 
 ---
 
+## Web Interface Addition (2025-10-26)
+
+### From CLI-Only to Dual-Interface
+
+**Web layer added as parallel adapter:**
+
+**New Module** (`web/`):
+- FastAPI application with async/SSE support
+- Jinja2 templates for 4 workflow stages
+- HTMX for dynamic updates (no page reloads)
+- CodeMirror 6 for rich markdown editing
+- Design system: "Sophisticated warmth" aesthetic
+
+**Technology Stack:**
+- FastAPI + Uvicorn (async web serving)
+- HTMX (dynamic HTML)
+- Jinja2 (server-side templates)
+- CodeMirror 6 (rich editor)
+- Server-Sent Events (real-time progress)
+
+**Why Python-Only:**
+- Critical for uvx distribution
+- No Node.js build step required
+- Single stack to maintain
+- Simpler deployment
+
+**Benefits**:
+- Rich editing experience (syntax highlighting, live preview)
+- Real-time visual progress during AI processing
+- Professional aesthetic impresses executives
+- Easier to demo to stakeholders
+- File preview before processing
+- Foundation for chat feedback (Phase 3)
+
+**What Didn't Change**:
+- All of `core/` (zero changes to business logic)
+- All of `cli/` (CLI mode unaffected)
+- Session management (works for both modes)
+- Dependencies on style/image/markdown modules
+
+**Mode Selection:**
+```bash
+blog-creator --mode cli    # Traditional CLI (default)
+blog-creator --mode web    # Opens browser with web UI
+```
+
+**Philosophy Applied**:
+- Ruthless simplicity: web is thin adapter (like CLI), reuses all core/
+- Modular design: web/ is independent brick, consumes same studs as cli/
+- No changes to existing working code (cli/, core/)
+- Browser auto-open via Python stdlib (webbrowser module)
+
+---
+
 ## Quick Reference
 
 **Quick Start (uvx - primary)**:
 ```bash
-uvx --from git+https://github.com/robotdad/amplifier-dev#subdirectory=amplifier-app-blog-creator \
-  blog-creator --idea notes.md --writings-dir ~/posts/
+uvx --from git+https://github.com/robotdad/amplifier-app-blog-creator blog-creator \
+  --idea notes.md \
+  --writings-dir ~/posts/
 ```
 
 **Development Install**: `cd amplifier-app-blog-creator && uv sync --dev`

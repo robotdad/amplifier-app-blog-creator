@@ -2,7 +2,24 @@
 
 **Transform ideas into polished, illustrated blog posts matching your unique voice**
 
-Stage-based blog creation workflow with independent, testable stages: style extraction, draft generation, automated review, and optional AI illustration.
+AI-powered blog creation with rich markdown editor, real-time progress, and style-aware generation. Run locally via uvx—no installation required.
+
+---
+
+## Quick Start (Recommended)
+
+**Run directly with uvx:**
+
+```bash
+uvx --from git+https://github.com/robotdad/amplifier-app-blog-creator blog-creator --mode web
+```
+
+Your browser opens with a polished interface:
+- Rich markdown editor with syntax highlighting
+- Real-time AI progress visualization
+- One-click approval or iterative refinement
+
+**First time?** The app will prompt for your Anthropic API key (stored in session only, never saved).
 
 ---
 
@@ -18,7 +35,7 @@ You have ideas worth sharing, but:
 
 ## The Solution
 
-Blog Creator uses a stage-based architecture with four independent stages:
+Blog Creator uses AI to analyze your writing style and generate content that sounds like you:
 
 **Stage 1: Style Extraction**
 Analyzes your writing samples to extract your unique style profile.
@@ -39,9 +56,57 @@ Analyzes content and generates contextual AI illustrations.
 
 ---
 
-## Quick Start
+## Web Interface (Recommended)
 
-### Installation
+**Start the web interface:**
+
+```bash
+# Using uvx (no installation needed)
+uvx --from git+https://github.com/robotdad/amplifier-app-blog-creator blog-creator --mode web
+
+# Or if installed locally
+blog-creator --mode web
+```
+
+Your browser opens automatically at http://localhost:8000
+
+**Features:**
+- 🎨 **Rich markdown editor** - Syntax highlighting, line numbers, live preview
+- ⚡ **Real-time progress** - Watch AI work through each stage with time estimates
+- 📄 **Content preview** - See your idea and writing samples before starting
+- ✓ **Visual review** - Source accuracy and style feedback in slide-out panel
+- 🎯 **One-click actions** - Approve immediately or iterate with AI
+- 💎 **Professional polish** - Warm aesthetic designed to impress
+
+**First-time setup:**
+- App checks for ANTHROPIC_API_KEY environment variable
+- If not found, friendly configuration screen appears
+- Enter your API key (stored in session only, never saved to disk)
+- Continue to main workflow
+
+---
+
+## Command-Line Interface
+
+**For automation or scripting:**
+
+```bash
+# Using uvx
+uvx --from git+https://github.com/robotdad/amplifier-app-blog-creator blog-creator \
+  --idea rough_notes.md \
+  --writings-dir ~/my_blog_posts/
+
+# Or if installed locally
+blog-creator --idea rough_notes.md --writings-dir ~/my_blog_posts/
+```
+
+CLI provides file-based feedback and console output for terminal-based workflows.
+
+---
+
+## Installation (For Development)
+
+**Most users should use uvx** (no installation needed). Install locally only for development:
 
 ```bash
 # Clone the repository
@@ -51,8 +116,8 @@ cd amplifier-app-blog-creator
 # Install dependencies
 uv sync
 
-# Run the app
-uv run blog-creator --idea rough_notes.md --writings-dir ~/my_blog_posts/
+# Run locally
+uv run blog-creator --mode web
 ```
 
 ### Content Only
@@ -76,7 +141,7 @@ uv run blog-creator \
 
 ---
 
-## Usage Guide
+## CLI Usage Guide
 
 ### Prepare Your Inputs
 
@@ -144,14 +209,73 @@ Type `skip` to continue without changes.
 
 ---
 
+## Web Interface Guide
+
+### Getting Started
+
+1. **Start the server:**
+   ```bash
+   blog-creator --mode web
+   ```
+   Your browser opens automatically to http://localhost:8000
+
+2. **Provide your inputs:**
+   - Idea file path (type, browse, or drag-and-drop)
+   - Writing samples directory path
+   - Optional: Additional instructions
+
+3. **Watch the AI work:**
+   - Real-time progress through extraction, generation, and review stages
+   - Clear time estimates and completion status
+
+4. **Review and refine:**
+   - Rich markdown editor with syntax highlighting
+   - Live preview toggle
+   - Review panel shows accuracy and style feedback
+   - Iterate until satisfied or approve immediately
+
+5. **Download your post:**
+   - Final markdown file ready to publish
+
+### Web Interface Features
+
+**Rich Editing:**
+- CodeMirror editor with markdown syntax highlighting
+- Line numbers and keyboard shortcuts
+- Live preview toggle (source ↔ rendered)
+- Auto-save while editing
+
+**Visual Progress:**
+- Real-time updates via Server-Sent Events
+- Progress bars for each AI stage
+- Time estimates and actual completion times
+- Smooth animations without page reloads
+
+**Smart Inputs:**
+- File path validation as you type
+- Native file picker integration
+- Drag-and-drop support
+- Preview your idea and samples before starting
+
+**Professional Polish:**
+- Warm, sophisticated aesthetic
+- Smooth stage transitions
+- Celebration animation on completion
+- Accessible (WCAG AA compliant)
+
+---
+
 ## Command-Line Options
 
 ```bash
-# Required
+# Mode selection
+--mode [cli|web]             # Interface mode (default: cli)
+
+# CLI Mode - Required
 --idea PATH                  # Your rough notes/brain dump
 --writings-dir PATH          # Directory with your writing samples
 
-# Optional
+# CLI Mode - Optional
 --instructions TEXT          # Additional guidance (e.g., "remove company names")
 --output PATH                # Custom output path (default: auto from title)
 --with-images                # Enable illustration phase
@@ -161,6 +285,11 @@ Type `skip` to continue without changes.
 --reset                      # Discard saved state, start fresh
 --max-iterations N           # Maximum refinement iterations (default: 10)
 --verbose                    # Detailed logging
+
+# Web Mode - Optional
+--no-browser                 # Don't auto-open browser
+--port N                     # Server port (default: 8000)
+--host TEXT                  # Server host (default: localhost)
 ```
 
 ---
@@ -195,6 +324,22 @@ Blog Creator uses a clean separation between core logic and UI concerns, enablin
 - `ui.py` - Display functions (stage transitions, progress, reviews)
 - `input_handler.py` - User input handling (feedback, approvals)
 - `main.py` - CLI entry point and workflow orchestration
+
+### Web Adapter (`web/`)
+
+**Web interface built on core:**
+
+- `app.py` - FastAPI application with SSE support
+- `routes/` - HTTP endpoints for sessions, workflow, and progress
+- `templates/` - Jinja2 templates for each stage
+- `static/` - CSS (design tokens, components) and JavaScript (HTMX, CodeMirror)
+
+**Technology stack:**
+- FastAPI + Uvicorn for async web serving
+- HTMX for dynamic HTML without page reloads
+- Jinja2 for server-side templating
+- CodeMirror 6 for rich markdown editing
+- Server-Sent Events (SSE) for real-time progress
 
 ### Supporting Modules
 
@@ -331,6 +476,11 @@ amplifier-app-blog-creator/
 │   │   ├── ui.py                # Display logic
 │   │   ├── input_handler.py     # User input
 │   │   └── main.py              # Entry point
+│   ├── web/                     # Web interface
+│   │   ├── app.py               # FastAPI application
+│   │   ├── routes/              # HTTP endpoints
+│   │   ├── templates/           # Jinja2 templates
+│   │   └── static/              # CSS, JavaScript, assets
 │   ├── session.py               # State management
 │   ├── reviewers/               # Review implementations
 │   ├── utils/                   # Defensive utilities
@@ -338,6 +488,7 @@ amplifier-app-blog-creator/
 ├── tests/                       # Test suite
 │   ├── core/                    # Core logic tests
 │   ├── cli/                     # CLI adapter tests
+│   ├── web/                     # Web adapter tests
 │   └── integration/             # End-to-end tests
 ├── README.md                    # This file
 └── pyproject.toml               # Dependencies and config

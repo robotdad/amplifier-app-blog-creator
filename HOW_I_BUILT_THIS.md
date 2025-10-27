@@ -146,10 +146,25 @@ src/amplifier_app_blog_creator/
 │   ├── ui.py                    # Display logic
 │   ├── input_handler.py         # User input
 │   └── main.py                  # CLI entry point
+├── web/                         # Web interface
+│   ├── app.py                   # FastAPI application
+│   ├── routes/                  # HTTP endpoints
+│   │   ├── sessions.py          # Session + workflow management
+│   │   ├── progress.py          # SSE progress streaming
+│   │   └── content.py           # File preview, markdown rendering
+│   ├── templates/               # Jinja2 templates
+│   │   ├── base.html            # Base layout
+│   │   ├── setup.html           # Stage 1: Input collection
+│   │   ├── progress.html        # Stage 2: AI processing
+│   │   ├── review.html          # Stage 3: Edit & review
+│   │   └── complete.html        # Stage 4: Success
+│   └── static/                  # Static assets
+│       ├── css/                 # Design tokens, layout, components
+│       └── js/                  # HTMX, CodeMirror, interactions
 ├── reviewers/                   # Review implementations
 │   ├── source_reviewer.py       # Fact-checking
 │   └── style_reviewer.py        # Voice consistency
-├── session.py                   # State management
+├── session.py                   # State management (shared by CLI and web)
 ├── illustration_phase.py        # Image generation (unchanged)
 ├── utils/                       # Defensive utilities
 └── vendored_toolkit/            # Progress, file ops, validation
@@ -157,9 +172,11 @@ src/amplifier_app_blog_creator/
 
 ---
 
-## Architectural Evolution: Stage-Based Refactoring
+## Architectural Evolution
 
-### The Need
+### Phase 1: Stage-Based Refactoring
+
+**The Need:**
 
 Original implementation used monolithic pipeline:
 - Single `run_pipeline()` function handled all stages
@@ -168,7 +185,7 @@ Original implementation used monolithic pipeline:
 - Hard to test individual stages
 - Couldn't support alternative interfaces (web)
 
-### The Solution
+**The Solution:**
 
 Refactored to clean separation of concerns:
 
@@ -185,7 +202,7 @@ Refactored to clean separation of concerns:
 - Preserves user experience
 - Easy to swap for web/API adapters
 
-### Stage Contracts
+**Stage Contracts:**
 
 Each stage is a pure async function:
 
@@ -211,7 +228,7 @@ async def generate_draft(
     # Returns markdown string
 ```
 
-### Workflow Orchestrator
+**Workflow Orchestrator:**
 
 Coordinates stages with session state:
 
@@ -225,26 +242,99 @@ class BlogCreatorWorkflow:
     async def run_revision(self, feedback: RevisionFeedback) -> str
 ```
 
-**Benefits**:
+**Benefits:**
 - Stage-by-stage execution
 - Clear progress visibility
 - Resumable at any stage
 - Ready for web/API interfaces
 - Better testability
 
-### Design Principles Applied
+---
 
-**Ruthless Simplicity**:
-- Stages are thin wrappers around existing clean code
-- No complex abstractions
-- Progress callbacks optional (None = silent)
-- Simple data models for communication
+### Phase 2: Web Interface
 
-**Modular Design**:
-- Each stage is a "brick" with clear "studs" (interfaces)
-- Can test/develop/improve stages independently
-- Workflow orchestrator is lightweight coordination
-- Future interfaces (web) add new adapters without touching core
+**The Need:**
+
+CLI is functional but limited:
+- No live markdown preview while editing
+- File-based feedback is clunky (edit file, save, continue)
+- Hard to demo to stakeholders (console output not visually impressive)
+- Real-time progress only via console output
+- Barrier for non-CLI-comfortable users
+
+**The Solution:**
+
+Added web interface as parallel adapter to core logic:
+
+**Web Adapter** (`web/`):
+- FastAPI application with SSE support
+- Jinja2 templates for server-side rendering
+- HTMX for dynamic HTML updates without page reloads
+- CodeMirror 6 for rich markdown editing
+- Pure UI layer (NO business logic)
+
+**Technology Choices:**
+
+**FastAPI + HTMX** (chosen over React/Vue):
+- Python-only stack (critical for uvx distribution)
+- Simple mental model (server renders HTML)
+- No build step required
+- Progressive enhancement (works without JavaScript)
+- SSE support built-in
+
+**CodeMirror 6** (chosen for markdown editor):
+- Professional syntax highlighting
+- Keyboard shortcuts and vim mode
+- Accessible (screen reader support)
+- Custom theming (matches warm aesthetic)
+- Vendored bundle (no npm required)
+
+**Design System:**
+
+Created comprehensive design specifications:
+- **Aesthetic:** "Sophisticated warmth" - professional polish + approachability
+- **Colors:** Warm neutrals with amber accents
+- **Motion:** Deliberate elegance (150-700ms timing protocol)
+- **Typography:** System font stack with 1.25 ratio scale
+- **Shadows:** Multi-layer depth for dimensionality
+- **Accessibility:** WCAG AA compliance throughout
+
+**4-Stage User Journey:**
+
+1. **Setup** - File path inputs with validation, preview capability
+2. **Progress** - Real-time SSE streaming with subtle animations
+3. **Review** - Rich editor with slide-out review drawer
+4. **Complete** - Celebration animation and download
+
+**Slide-Out Drawer Pattern:**
+
+Review panel slides from right (future-proofs for chat):
+- Full-width editor by default (maximum editing space)
+- Toggle drawer with badge showing issue count
+- Smooth 350ms spring animation
+- Keyboard shortcut: Cmd/Ctrl + R
+- Same pattern will host chat interface in Phase 3
+
+**Benefits:**
+- Rich editing experience (syntax highlighting, live preview)
+- Visual progress during AI processing (no waiting in dark)
+- Easier to demo (polished, professional appearance)
+- Impresses executives while remaining approachable
+- Foundation for chat-based feedback (Phase 3)
+
+**Design Principles Applied:**
+
+**Ruthless Simplicity:**
+- Web layer is thin adapter (like CLI)
+- Reuses all core/ logic (zero duplication)
+- HTMX simpler than React (server-rendered HTML)
+- No complex state management (server owns state)
+
+**Modular Design:**
+- web/ is independent "brick" alongside cli/
+- Both consume same core/ "studs" (BlogCreatorWorkflow)
+- Can develop/test/improve independently
+- Adding web didn't require changing core/
 
 ---
 
