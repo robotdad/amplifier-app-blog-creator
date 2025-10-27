@@ -482,7 +482,7 @@ Return JSON with:
                 ill_id, path = result
                 images[ill_id] = path
         
-        print(f"   ✓ {len(images)}/{len(prompts)} images generated\n"
+        print(f"   ✓ {len(images)}/{len(prompts)} images generated\n")
         return images
 
     async def _update_markdown(
