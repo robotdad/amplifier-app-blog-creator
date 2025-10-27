@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Setup - Blog Creator{% endblock %}
+
+{% block content %}
+<div class="setup-container">
+    <h1>Create Your Blog Post</h1>
+    <p class="subtitle">Provide your writing samples and initial idea to get started.</p>
+
+    <form id="setup-form" hx-post="/sessions/{{ session_id }}/start-workflow" hx-target="body">
+        <!-- Idea File Input -->
+        <div class="input-group">
+            <label for="idea_path" class="input-label">
+                <span class="label-text">Brain Dump File</span>
+                <span class="label-hint">Markdown or text file with your initial thoughts</span>
+            </label>
+            <div class="path-input">
+                <input
+                    type="text"
+                    id="idea_path"
+                    name="idea_path"
+                    class="input-field"
+                    placeholder="~/Documents/blog-idea.md"
+                    required
+                    hx-post="/sessions/{{ session_id }}/validate-path"
+                    hx-include="[name='idea_path']"
+                    hx-trigger="blur, keyup changed delay:500ms"
+                    hx-target="#idea-feedback"
+                    hx-vals='{"type": "file"}'
+                >
+                <div id="idea-feedback" class="feedback-container"></div>
+            </div>
+        </div>
+
+        <!-- Writings Directory Input -->
+        <div class="input-group">
+            <label for="writings_dir" class="input-label">
+                <span class="label-text">Writing Samples Directory</span>
+                <span class="label-hint">Folder containing your previous blog posts (.md files)</span>
+            </label>
+            <div class="path-input">
+                <input
+                    type="text"
+                    id="writings_dir"
+                    name="writings_dir"
+                    class="input-field"
+                    placeholder="~/Documents/blog-posts"
+                    required
+                    hx-post="/sessions/{{ session_id }}/validate-path"
+                    hx-include="[name='writings_dir']"
+                    hx-trigger="blur, keyup changed delay:500ms"
+                    hx-target="#writings-feedback"
+                    hx-vals='{"type": "directory"}'
+                >
+                <div id="writings-feedback" class="feedback-container"></div>
+            </div>
+        </div>
+
+        <!-- Optional Instructions -->
+        <div class="input-group">
+            <label for="instructions" class="input-label">
+                <span class="label-text">Additional Instructions (Optional)</span>
+                <span class="label-hint">Any specific guidance for the AI</span>
+            </label>
+            <textarea
+                id="instructions"
+                name="instructions"
+                class="textarea-field"
+                rows="4"
+                placeholder="e.g., 'Focus on technical details' or 'Keep it conversational'"
+            ></textarea>
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions">
+            <button type="submit" class="button button-primary" id="start-btn" disabled>
+                Start Creation
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+// Enable start button only when both paths are valid
+let ideaValid = false;
+let writingsValid = false;
+
+function updateStartButton() {
+    const startBtn = document.getElementById('start-btn');
+    startBtn.disabled = !(ideaValid && writingsValid);
+}
+
+// Listen for HTMX events to track validation state
+document.body.addEventListener('htmx:afterSwap', function(event) {
+    const target = event.detail.target.id;
+
+    if (target === 'idea-feedback') {
+        const feedback = event.detail.target.querySelector('.feedback-valid');
+        ideaValid = !!feedback;
+        updateStartButton();
+    }
+
+    if (target === 'writings-feedback') {
+        const feedback = event.detail.target.querySelector('.feedback-valid');
+        writingsValid = !!feedback;
+        updateStartButton();
+    }
+});
+</script>
+{% endblock %}
