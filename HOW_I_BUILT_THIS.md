@@ -134,15 +134,117 @@ Combined workflows from both tools (~2,600 LOC):
 
 ```
 src/amplifier_app_blog_creator/
-├── main.py                      # CLI and orchestration
-├── content_phase.py             # Blog writing workflow
-├── illustration_phase.py        # Image generation workflow
-├── reviewers/
+├── core/                        # Pure business logic
+│   ├── stages/                  # Independent stage functions
+│   │   ├── style_extraction.py
+│   │   ├── draft_generation.py
+│   │   ├── review.py
+│   │   └── revision.py
+│   ├── workflow.py              # Stage orchestration
+│   └── models.py                # Shared data models
+├── cli/                         # CLI interface
+│   ├── ui.py                    # Display logic
+│   ├── input_handler.py         # User input
+│   └── main.py                  # CLI entry point
+├── reviewers/                   # Review implementations
 │   ├── source_reviewer.py       # Fact-checking
 │   └── style_reviewer.py        # Voice consistency
-├── feedback.py                  # User feedback handling
-└── session.py                   # State management and checkpoints
+├── session.py                   # State management
+├── illustration_phase.py        # Image generation (unchanged)
+├── utils/                       # Defensive utilities
+└── vendored_toolkit/            # Progress, file ops, validation
 ```
+
+---
+
+## Architectural Evolution: Stage-Based Refactoring
+
+### The Need
+
+Original implementation used monolithic pipeline:
+- Single `run_pipeline()` function handled all stages
+- Blocking I/O (`input()`) stopped execution for user feedback
+- UI concerns mixed with business logic
+- Hard to test individual stages
+- Couldn't support alternative interfaces (web)
+
+### The Solution
+
+Refactored to clean separation of concerns:
+
+**Core Logic** (`core/`):
+- Independent stage functions with clear contracts
+- No UI dependencies (print, input, etc.)
+- Progress via optional callbacks
+- Fully testable in isolation
+- Async throughout
+
+**CLI Adapter** (`cli/`):
+- Thin layer over core workflow
+- Handles all display and input
+- Preserves user experience
+- Easy to swap for web/API adapters
+
+### Stage Contracts
+
+Each stage is a pure async function:
+
+```python
+async def extract_style(
+    writings_dir: Path,
+    progress_callback: Callable[[str], None] | None = None
+) -> StyleProfile:
+    """Extract writing style from samples."""
+    # Pure logic, no UI
+    # Optional progress updates
+    # Returns typed result
+
+async def generate_draft(
+    brain_dump: str,
+    style_profile: StyleProfile,
+    additional_instructions: str | None = None,
+    progress_callback: Callable[[str], None] | None = None
+) -> str:
+    """Generate blog post from idea."""
+    # Pure generation logic
+    # No blocking, no print statements
+    # Returns markdown string
+```
+
+### Workflow Orchestrator
+
+Coordinates stages with session state:
+
+```python
+class BlogCreatorWorkflow:
+    """Orchestrates blog creation stages."""
+
+    async def run_style_extraction(self, writings_dir: Path) -> StyleProfile
+    async def run_draft_generation(self, brain_dump: str) -> str
+    async def run_review(self) -> ReviewResult
+    async def run_revision(self, feedback: RevisionFeedback) -> str
+```
+
+**Benefits**:
+- Stage-by-stage execution
+- Clear progress visibility
+- Resumable at any stage
+- Ready for web/API interfaces
+- Better testability
+
+### Design Principles Applied
+
+**Ruthless Simplicity**:
+- Stages are thin wrappers around existing clean code
+- No complex abstractions
+- Progress callbacks optional (None = silent)
+- Simple data models for communication
+
+**Modular Design**:
+- Each stage is a "brick" with clear "studs" (interfaces)
+- Can test/develop/improve stages independently
+- Workflow orchestrator is lightweight coordination
+- Future interfaces (web) add new adapters without touching core
 
 ---
 

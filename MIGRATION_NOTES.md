@@ -93,6 +93,43 @@ if not extractor:
 
 ---
 
+## Stage-Based Refactoring (2025-01-26)
+
+### From Monolithic to Modular
+
+**Previous Architecture**:
+- Single `run_pipeline()` function
+- Blocking `input()` for user feedback
+- Print statements throughout logic
+- Hard to test stages independently
+
+**New Architecture**:
+- `core/` - Pure stage functions (no UI, no blocking I/O)
+- `cli/` - CLI adapter (display + input handling)
+- `workflow.py` - Stage orchestrator
+- Progress via optional callbacks
+
+**Benefits**:
+- Each stage independently testable
+- No blocking in core logic
+- Ready for web interface (future)
+- Better separation of concerns
+- Clearer progress visibility
+
+**What Didn't Change**:
+- Session management (`session.py`)
+- Review implementations (`reviewers/`)
+- Defensive utilities (`utils/`)
+- Vendored toolkit
+- Illustration phase
+
+**Philosophy Applied**:
+- Ruthless simplicity: minimal abstractions, clear contracts
+- Modular design: stages are "bricks", interfaces are "studs"
+- Each stage regeneratable from signature
+
+---
+
 ## Quick Reference
 
 **Quick Start (uvx - primary)**:
