@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Creating Your Blog Post{% endblock %}
+
+{% block content %}
+<div class="progress-container">
+    <div class="progress-header">
+        <h1>Creating Your Blog Post</h1>
+        <p class="progress-subtitle">Please wait while we craft your content...</p>
+    </div>
+
+    <div class="progress-stage-card">
+        <div class="stage-icon">⟳</div>
+        <div class="stage-content">
+            <h2 class="stage-title">Processing</h2>
+            <div id="progress-message" class="stage-message">Initializing...</div>
+        </div>
+    </div>
+
+    <div class="progress-log">
+        <h3>Progress Log</h3>
+        <div id="progress-log-content" class="log-content"></div>
+    </div>
+</div>
+
+<style>
+.progress-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.progress-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.progress-header h1 {
+    font-size: 2rem;
+    color: var(--color-text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.progress-subtitle {
+    color: var(--color-text-secondary);
+    font-size: 1.125rem;
+}
+
+.progress-stage-card {
+    background: var(--color-bg-secondary);
+    border-radius: 10px;
+    padding: 2rem;
+    box-shadow: var(--shadow-card);
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stage-icon {
+    font-size: 3rem;
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.stage-content {
+    flex: 1;
+}
+
+.stage-title {
+    font-size: 1.5rem;
+    color: var(--color-text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.stage-message {
+    color: var(--color-text-secondary);
+    font-size: 1rem;
+}
+
+.progress-log {
+    background: var(--color-bg-secondary);
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow-card);
+}
+
+.progress-log h3 {
+    font-size: 1.25rem;
+    color: var(--color-text-primary);
+    margin-bottom: 1rem;
+}
+
+.log-content {
+    font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    background: var(--color-bg-tertiary);
+    padding: 1rem;
+    border-radius: 6px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.log-entry {
+    padding: 0.25rem 0;
+}
+</style>
+
+<script>
+const sessionId = "{{ session_id }}";
+const eventSource = new EventSource(`/sessions/${sessionId}/progress-stream`);
+
+eventSource.onmessage = function(event) {
+    const data = JSON.parse(event.data);
+    const message = data.message;
+
+    // Update current message
+    document.getElementById('progress-message').textContent = message;
+
+    // Add to log
+    const logContent = document.getElementById('progress-log-content');
+    const entry = document.createElement('div');
+    entry.className = 'log-entry';
+    entry.textContent = `• ${message}`;
+    logContent.appendChild(entry);
+
+    // Scroll to bottom
+    logContent.scrollTop = logContent.scrollHeight;
+};
+
+eventSource.addEventListener('complete', function(event) {
+    const data = JSON.parse(event.data);
+    eventSource.close();
+
+    // Redirect to review page
+    window.location.href = data.redirect;
+});
+
+eventSource.onerror = function(error) {
+    console.error('SSE Error:', error);
+    document.getElementById('progress-message').textContent = 'Connection error - please refresh';
+};
+</script>
+{% endblock %}
