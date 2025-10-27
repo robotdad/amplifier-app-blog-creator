@@ -5,6 +5,7 @@ creates images, and inserts them at appropriate line numbers in the markdown.
 """
 
 import logging
+import asyncio
 import os
 from pathlib import Path
 
