@@ -3,7 +3,7 @@
 from pathlib import Path
 from typing import Callable
 
-from amplifier_module_style_extraction import StyleExtractor
+from amplifier_module_style_extraction.core import StyleExtractor
 
 from ..models import StyleProfile
 
