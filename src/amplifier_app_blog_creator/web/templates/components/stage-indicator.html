@@ -1,0 +1,10 @@
+<nav class="stage-indicator" aria-label="Progress">
+    <div class="stages">
+        {% for stage in ["Configuration", "Setup", "Progress", "Review", "Complete"] %}
+            <span class="stage {% if current_stage == stage %}current{% endif %}">
+                {{ stage }}
+            </span>
+            {% if not loop.last %}<span class="arrow">→</span>{% endif %}
+        {% endfor %}
+    </div>
+</nav>

@@ -1,0 +1,46 @@
+/* Component-specific styles */
+/* This file will be populated with component styles in later chunks */
+
+/* Button styles (basic) */
+.button {
+    position: relative;
+    padding: var(--space-sm) var(--space-lg);
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 16px;
+    font-weight: var(--weight-semibold);
+    cursor: pointer;
+    transition: all var(--duration-standard) var(--easing-spring);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-xs);
+    min-height: 48px;
+}
+
+.button-primary {
+    background: var(--color-accent-primary);
+    color: white;
+    box-shadow: var(--shadow-button);
+}
+
+.button-primary:hover {
+    background: var(--color-accent-hover);
+    box-shadow: var(--shadow-button-hover);
+}
+
+.button-primary:active {
+    background: var(--color-accent-active);
+    transform: translateY(1px);
+}
+
+.button-secondary {
+    background: transparent;
+    color: var(--color-accent-primary);
+    border: 2px solid var(--color-accent-primary);
+}
+
+.button-secondary:hover {
+    background: rgba(212, 148, 59, 0.1);
+    border-color: var(--color-accent-hover);
+}

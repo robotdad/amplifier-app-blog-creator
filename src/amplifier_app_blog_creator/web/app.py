@@ -4,7 +4,7 @@ import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
@@ -38,3 +38,13 @@ app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 template_dir = Path(__file__).parent / "templates"
 template_dir.mkdir(exist_ok=True)
 templates = Jinja2Templates(directory=str(template_dir))
+
+
+@app.get("/test")
+async def test_page(request: Request):
+    """Test route to verify templates and design system."""
+    return templates.TemplateResponse("base.html", {
+        "request": request,
+        "show_stage_indicator": True,
+        "current_stage": "Setup"
+    })

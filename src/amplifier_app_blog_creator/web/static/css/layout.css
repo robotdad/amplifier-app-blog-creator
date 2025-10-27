@@ -1,0 +1,146 @@
+/* Base reset and typography */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-family);
+    font-size: 16px;
+    line-height: var(--leading-normal);
+    color: var(--color-text-primary);
+    background: var(--color-bg-primary);
+}
+
+/* App layout structure */
+.app-layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.main-content {
+    flex: 1;
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+    padding: var(--space-xl);
+}
+
+/* Header */
+.header {
+    height: 64px;
+    background: var(--color-bg-secondary);
+    border-bottom: 1px solid var(--color-border-subtle);
+    box-shadow: var(--shadow-card);
+}
+
+.header-content {
+    max-width: 1200px;
+    height: 100%;
+    margin: 0 auto;
+    padding: 0 var(--space-md);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.logo {
+    font-size: 20px;
+    font-weight: var(--weight-semibold);
+    color: var(--color-text-primary);
+}
+
+/* Stage indicator */
+.stage-indicator {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.stages {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.stage {
+    font-size: var(--text-sm);
+    color: var(--color-text-tertiary);
+    font-weight: var(--weight-normal);
+}
+
+.stage.current {
+    color: var(--color-accent-primary);
+    font-weight: var(--weight-semibold);
+}
+
+.arrow {
+    color: var(--color-text-tertiary);
+    font-size: var(--text-sm);
+}
+
+/* Footer */
+.footer {
+    height: 48px;
+    background: var(--color-bg-tertiary);
+    border-top: 1px solid var(--color-border);
+}
+
+.footer-content {
+    max-width: 1200px;
+    height: 100%;
+    margin: 0 auto;
+    padding: 0 var(--space-md);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: var(--text-sm);
+    color: var(--color-text-tertiary);
+}
+
+/* Card primitives */
+.card {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
+    padding: var(--space-xl);
+}
+
+.card-centered {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Grid system */
+.grid {
+    display: grid;
+    gap: var(--space-md);
+}
+
+.grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .main-content {
+        padding: var(--space-md);
+    }
+
+    .grid-2,
+    .grid-3 {
+        grid-template-columns: 1fr;
+    }
+
+    .stages {
+        font-size: var(--text-xs);
+        gap: var(--space-xs);
+    }
+}
