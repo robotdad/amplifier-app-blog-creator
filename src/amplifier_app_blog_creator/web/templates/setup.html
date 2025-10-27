@@ -12,22 +12,19 @@
         <div class="input-group">
             <label for="idea_path" class="input-label">
                 <span class="label-text">Brain Dump File</span>
-                <span class="label-hint">Markdown or text file with your initial thoughts</span>
+                <span class="label-hint">Full path to markdown or text file with your initial thoughts</span>
             </label>
             <div class="path-input">
-                <div class="path-input-row">
-                    <input
-                        type="text"
-                        id="idea_path"
-                        name="idea_path"
-                        class="input-field"
-                        placeholder="~/Documents/blog-idea.md"
-                        required
-                    >
-                    <button type="button" class="button button-secondary" onclick="browseFile('idea_path')">
-                        Browse
-                    </button>
-                </div>
+                <input
+                    type="text"
+                    id="idea_path"
+                    name="idea_path"
+                    class="input-field"
+                    placeholder="/Users/you/Documents/blog-idea.md"
+                    required
+                    list="recent-idea-files"
+                >
+                <datalist id="recent-idea-files"></datalist>
             </div>
         </div>
 
@@ -35,22 +32,19 @@
         <div class="input-group">
             <label for="writings_dir" class="input-label">
                 <span class="label-text">Writing Samples Directory</span>
-                <span class="label-hint">Folder containing your previous blog posts (.md files)</span>
+                <span class="label-hint">Full path to folder containing your previous blog posts (.md files)</span>
             </label>
             <div class="path-input">
-                <div class="path-input-row">
-                    <input
-                        type="text"
-                        id="writings_dir"
-                        name="writings_dir"
-                        class="input-field"
-                        placeholder="~/Documents/blog-posts"
-                        required
-                    >
-                    <button type="button" class="button button-secondary" onclick="browseDirectory('writings_dir')">
-                        Browse
-                    </button>
-                </div>
+                <input
+                    type="text"
+                    id="writings_dir"
+                    name="writings_dir"
+                    class="input-field"
+                    placeholder="/Users/you/Documents/blog-posts"
+                    required
+                    list="recent-writings-dirs"
+                >
+                <datalist id="recent-writings-dirs"></datalist>
             </div>
         </div>
 
@@ -79,41 +73,33 @@
 </div>
 
 <script>
-// File browsing functionality
-function browseFile(inputId) {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.md,.txt';
-    input.onchange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const pathInput = document.getElementById(inputId);
-            pathInput.value = file.path || file.name;
-        }
-    };
-    input.click();
+// Load recent paths from previous sessions
+async function loadRecentPaths() {
+    try {
+        const response = await fetch('/sessions/recent-paths');
+        const data = await response.json();
+
+        // Populate idea files datalist
+        const ideaDatalist = document.getElementById('recent-idea-files');
+        data.idea_files.forEach(path => {
+            const option = document.createElement('option');
+            option.value = path;
+            ideaDatalist.appendChild(option);
+        });
+
+        // Populate writings directories datalist
+        const writingsDatalist = document.getElementById('recent-writings-dirs');
+        data.writings_dirs.forEach(path => {
+            const option = document.createElement('option');
+            option.value = path;
+            writingsDatalist.appendChild(option);
+        });
+    } catch (err) {
+        console.log('Could not load recent paths:', err);
+    }
 }
 
-function browseDirectory(inputId) {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.webkitdirectory = true;
-    input.onchange = (e) => {
-        const files = e.target.files;
-        if (files.length > 0) {
-            const pathInput = document.getElementById(inputId);
-            // Get directory path from first file
-            const firstFile = files[0];
-            if (firstFile.webkitRelativePath) {
-                const parts = firstFile.webkitRelativePath.split('/');
-                parts.pop(); // Remove filename
-                pathInput.value = parts.join('/');
-            } else {
-                pathInput.value = firstFile.path || '';
-            }
-        }
-    };
-    input.click();
-}
+// Load recent paths on page load
+loadRecentPaths();
 </script>
 {% endblock %}

@@ -74,6 +74,7 @@ class SessionState:
     writings_dir: str | None = None
     output_path: str | None = None
     additional_instructions: str | None = None
+    api_key: str | None = None  # For web mode (transferred from HTTP session)
 
     # Phase 1: Content creation
     stage: str = "initialized"

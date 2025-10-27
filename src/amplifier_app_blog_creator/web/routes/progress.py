@@ -97,6 +97,17 @@ async def run_workflow(session_id: str):
         # Load session
         session_mgr = SessionManager(Path(f".data/blog_creator/{session_id}"))
 
+        # Get API key from session state (stored during configuration)
+        # Core stages read from environment, so set it here
+        import os
+        api_key = session_mgr.state.api_key or os.getenv("ANTHROPIC_API_KEY")
+
+        if not api_key:
+            await queue.put("Error: No API key configured")
+            return
+
+        os.environ["ANTHROPIC_API_KEY"] = api_key
+
         # Progress callback
         def progress_callback(message: str):
             asyncio.create_task(queue.put(message))
@@ -129,14 +140,28 @@ async def run_workflow(session_id: str):
         await queue.put("Generating initial draft...")
         await workflow.run_draft_generation(brain_dump, additional_instructions)
 
-        # Stage 3: Review
+        # Stage 3: Review (first pass - like CLI iteration 1)
         await queue.put("Reviewing draft...")
-        await workflow.run_review()
+        review_result = await workflow.run_review()
 
-        # Stage 4: Revision (auto-approve for web MVP)
-        await queue.put("Finalizing draft...")
-        feedback = RevisionFeedback(action="approve")
-        await workflow.run_revision(feedback)
+        # Stage 4: Auto-revision if issues found (match CLI's first-pass behavior)
+        if review_result.needs_revision:
+            # Increment iteration before revision (this will be iter_1)
+            if not session_mgr.increment_iteration():
+                await queue.put("Error: Maximum iterations reached")
+                return
+
+            await queue.put("Revising based on review feedback...")
+            feedback = RevisionFeedback(
+                action="revise",
+                source_issues=review_result.source_issues,
+                style_issues=review_result.style_issues
+            )
+            await workflow.run_revision(feedback)
+
+            # Review again after revision
+            await queue.put("Final review...")
+            await workflow.run_review()
 
         await queue.put("Workflow complete!")
 

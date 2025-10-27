@@ -7,17 +7,18 @@
     <div class="review-header">
         <h1>Review Your Blog Post</h1>
         <div class="review-controls">
-            <button id="preview-toggle" class="btn btn-secondary">Preview</button>
+            <button id="preview-toggle" class="btn btn-secondary">Edit</button>
             <button id="review-toggle" class="btn btn-secondary">Review Issues</button>
+            <button id="start-over-btn" class="btn btn-secondary">Start Over</button>
             <button id="approve-btn" class="btn btn-primary">Approve & Finish</button>
         </div>
     </div>
 
     <div class="editor-container">
-        <div id="editor-pane" class="editor-pane">
+        <div id="editor-pane" class="editor-pane" style="display: none;">
             <textarea id="markdown-editor">{{ draft }}</textarea>
         </div>
-        <div id="preview-pane" class="preview-pane" style="display: none;">
+        <div id="preview-pane" class="preview-pane">
             <div id="preview-content" class="markdown-preview"></div>
         </div>
     </div>
@@ -39,7 +40,8 @@
             <div id="style-issues" class="issues-list"></div>
         </div>
     </div>
-    <div class="drawer-actions">
+    <div class="drawer-actions" style="display: none;">
+        <!-- Regenerate functionality deferred to post-MVP -->
         <button id="regenerate-btn" class="btn btn-secondary">Regenerate with Fixes</button>
     </div>
 </div>
@@ -272,36 +274,39 @@
 const sessionId = "{{ session_id }}";
 let autoSaveTimeout;
 
+// Render preview helper
+async function renderPreview() {
+    const content = document.getElementById('markdown-editor').value;
+    const formData = new FormData();
+    formData.append('content', content);
+
+    const response = await fetch('/sessions/render-markdown', {
+        method: 'POST',
+        body: formData
+    });
+
+    const html = await response.text();
+    document.getElementById('preview-content').innerHTML = html;
+}
+
 // Preview toggle
 document.getElementById('preview-toggle').addEventListener('click', async () => {
     const editorPane = document.getElementById('editor-pane');
     const previewPane = document.getElementById('preview-pane');
     const btn = document.getElementById('preview-toggle');
 
-    if (previewPane.style.display === 'none') {
-        // Show preview
-        const content = document.getElementById('markdown-editor').value;
-
-        // Render markdown
-        const formData = new FormData();
-        formData.append('content', content);
-
-        const response = await fetch('/sessions/render-markdown', {
-            method: 'POST',
-            body: formData
-        });
-
-        const html = await response.text();
-        document.getElementById('preview-content').innerHTML = html;
-
-        editorPane.style.display = 'none';
-        previewPane.style.display = 'block';
-        btn.textContent = 'Edit';
-    } else {
-        // Show editor
+    // Check current state (we start in preview)
+    if (editorPane.style.display === 'none') {
+        // Currently showing preview, switch to editor
         editorPane.style.display = 'block';
         previewPane.style.display = 'none';
         btn.textContent = 'Preview';
+    } else {
+        // Currently showing editor, switch to preview
+        await renderPreview();
+        editorPane.style.display = 'none';
+        previewPane.style.display = 'block';
+        btn.textContent = 'Edit';
     }
 });
 
@@ -321,12 +326,13 @@ document.getElementById('markdown-editor').addEventListener('input', () => {
     }, 1000);
 });
 
+// Start Over button
+document.getElementById('start-over-btn').addEventListener('click', () => {
+    window.location.href = '/sessions/new';
+});
+
 // Approve button
 document.getElementById('approve-btn').addEventListener('click', async () => {
-    if (!confirm('Are you sure you want to approve and finish?')) {
-        return;
-    }
-
     const response = await fetch(`/sessions/${sessionId}/approve`, {
         method: 'POST'
     });
@@ -389,7 +395,8 @@ document.getElementById('regenerate-btn').addEventListener('click', () => {
     closeDrawer();
 });
 
-// Load review data on page load
+// Initialize page - load review data and render initial preview
 loadReviewData();
+renderPreview();  // Show preview on load since we default to preview mode
 </script>
 {% endblock %}

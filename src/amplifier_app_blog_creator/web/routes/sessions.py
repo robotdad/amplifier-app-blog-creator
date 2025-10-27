@@ -18,6 +18,35 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/sessions")
 
 
+@router.get("/recent-paths")
+async def get_recent_paths():
+    """Get recent file/folder paths from previous sessions."""
+    recent_ideas = []
+    recent_writings = []
+
+    sessions_dir = Path(".data/blog_creator")
+    if sessions_dir.exists():
+        for session_dir in sessions_dir.iterdir():
+            if session_dir.is_dir():
+                state_file = session_dir / "state.json"
+                if state_file.exists():
+                    try:
+                        import json
+                        state = json.loads(state_file.read_text())
+                        if state.get("idea_path"):
+                            recent_ideas.append(state["idea_path"])
+                        if state.get("writings_dir"):
+                            recent_writings.append(state["writings_dir"])
+                    except Exception:
+                        pass
+
+    # Return unique paths, most recent first (reversed)
+    return {
+        "idea_files": list(dict.fromkeys(reversed(recent_ideas)))[:10],
+        "writings_dirs": list(dict.fromkeys(reversed(recent_writings)))[:10],
+    }
+
+
 class PathValidationRequest(BaseModel):
     path: str
     type: str  # "file" or "directory"
@@ -34,6 +63,11 @@ class PathValidationResponse(BaseModel):
 @router.get("/new", response_class=HTMLResponse)
 async def new_session(request: Request):
     """Create new session and show setup page."""
+    # Ensure API key is configured before allowing workflow
+    from .configuration import is_configured
+    if not is_configured(request):
+        return RedirectResponse(url="/configure", status_code=302)
+
     # Create session
     session_mgr = SessionManager()
     request.session["session_id"] = session_mgr.state.session_id
@@ -174,8 +208,43 @@ async def start_workflow(
     """Start the blog creation workflow."""
     # Store paths in session for progress stage
     session_mgr = SessionManager(Path(f".data/blog_creator/{session_id}"))
-    session_mgr.state.idea_path = idea_path
-    session_mgr.state.writings_dir = writings_dir
+
+    # Expand paths to absolute (handles ~, relative paths, etc.)
+    idea_path_abs = Path(idea_path).expanduser().resolve()
+    writings_dir_abs = Path(writings_dir).expanduser().resolve()
+
+    # Validate paths exist before starting workflow
+    if not idea_path_abs.exists():
+        return HTMLResponse(
+            f'<div class="error">Idea file not found: {idea_path_abs}</div>',
+            status_code=400
+        )
+    if not idea_path_abs.is_file():
+        return HTMLResponse(
+            f'<div class="error">Idea path is not a file: {idea_path_abs}</div>',
+            status_code=400
+        )
+    if not writings_dir_abs.exists():
+        return HTMLResponse(
+            f'<div class="error">Writings directory not found: {writings_dir_abs}</div>',
+            status_code=400
+        )
+    if not writings_dir_abs.is_dir():
+        return HTMLResponse(
+            f'<div class="error">Writings path is not a directory: {writings_dir_abs}</div>',
+            status_code=400
+        )
+
+    session_mgr.state.idea_path = str(idea_path_abs)
+    session_mgr.state.writings_dir = str(writings_dir_abs)
+
+    # Transfer API key from HTTP session to SessionManager state
+    # (Core stages read from environment, which will be set from session state)
+    from .configuration import get_api_key
+    api_key = get_api_key(request)
+    if api_key:
+        session_mgr.state.api_key = api_key
+
     if instructions:
         session_mgr.state.additional_instructions = instructions
     session_mgr.save()
