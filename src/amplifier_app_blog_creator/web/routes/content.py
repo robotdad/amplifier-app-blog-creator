@@ -93,3 +93,44 @@ async def approve_draft(session_id: str):
     session_mgr.update_stage("complete")
 
     return JSONResponse({"download_path": str(output_path), "redirect": f"/sessions/{session_id}/complete"})
+
+
+@router.get("/{session_id}/complete", response_class=HTMLResponse)
+async def complete_page(request: Request, session_id: str):
+    """Show completion page."""
+    session_mgr = SessionManager(Path(f".data/blog_creator/{session_id}"))
+
+    # Calculate word count
+    draft = session_mgr.state.current_draft or ""
+    word_count = len(draft.split())
+
+    output_path = session_mgr.session_dir / "output.md"
+
+    return templates.TemplateResponse(
+        "complete.html",
+        {
+            "request": request,
+            "session_id": session_id,
+            "iteration": session_mgr.state.iteration,
+            "word_count": word_count,
+            "output_path": str(output_path),
+        },
+    )
+
+
+@router.get("/{session_id}/download")
+async def download_draft(session_id: str):
+    """Download final draft as markdown file."""
+    from fastapi.responses import FileResponse
+
+    session_mgr = SessionManager(Path(f".data/blog_creator/{session_id}"))
+    output_path = session_mgr.session_dir / "output.md"
+
+    if not output_path.exists():
+        output_path.write_text(session_mgr.state.current_draft or "")
+
+    return FileResponse(
+        path=str(output_path),
+        media_type="text/markdown",
+        filename=f"blog_post_{session_id[:8]}.md",
+    )
