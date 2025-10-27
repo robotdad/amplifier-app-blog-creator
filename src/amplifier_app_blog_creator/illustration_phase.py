@@ -150,11 +150,11 @@ class IllustrationPhase:
                 IllustrationPoint(
                     section_title=section_title,
                     section_index=idx,
-                    line_number=line_num,
+                    line_number=line_num + 1,  # AFTER heading
                     context_before=context_before[:100],
                     context_after=context_after[:100],
                     importance="high",
-                    suggested_placement="before_section",
+                    suggested_placement="after_intro"  # After heading,
                 )
             )
 
@@ -181,7 +181,7 @@ class IllustrationPhase:
                 IllustrationPoint(
                     section_title=f"Section {i + 1}",
                     section_index=i,
-                    line_number=line_num,
+                    line_number=line_num + 1,  # AFTER heading
                     context_before="",
                     context_after="",
                     importance="medium",
@@ -292,11 +292,11 @@ Return JSON with structure:
                 IllustrationPoint(
                     section_title=title,
                     section_index=i,
-                    line_number=line_num,
+                    line_number=line_num + 1,  # AFTER heading
                     context_before=lines[max(0, line_num - 2)] if line_num > 0 else "",
                     context_after=lines[min(len(lines) - 1, line_num + 2)],
                     importance="medium",
-                    suggested_placement="before_section",
+                    suggested_placement="after_intro"  # After heading,
                 )
             )
 
@@ -451,43 +451,39 @@ Return JSON with:
         prompts: list[ImagePrompt],
         output_dir: Path,
     ) -> dict[str, Path]:
-        """Generate images for each prompt.
-
-        Args:
-            prompts: List of image prompts
-            output_dir: Directory to save images
-
-        Returns:
-            Dict mapping illustration_id to image path
-        """
-        logger.info(f"Generating {len(prompts)} images...")
-
+        """Generate images in parallel for speed."""
         output_dir.mkdir(parents=True, exist_ok=True)
-        images = {}
-
-        progress = ProgressReporter(len(prompts), "Generating images", show_items=True)
-        for prompt in prompts:
+        
+        print(f"   Generating {len(prompts)} images in parallel...")
+        
+        async def generate_one(prompt):
             try:
                 image_path = output_dir / f"{prompt.illustration_id}.png"
-
                 result = await self.image_generator.generate(
                     prompt=prompt.full_prompt,
                     output_path=image_path,
                     preferred_api="gptimage",
                 )
-
                 if result.success:
-                    images[prompt.illustration_id] = result.local_path
-                    progress.update(f"{prompt.illustration_id} (${result.cost:.4f})")
+                    print(f"   ✓ {prompt.point.section_title}")
+                    return (prompt.illustration_id, result.local_path)
                 else:
-                    logger.error(f"  ✗ Failed {prompt.illustration_id}: {result.error}")
-                    progress.update(f"{prompt.illustration_id} (failed)")
-
+                    print(f"   ✗ {prompt.illustration_id}: {result.error}")
+                    return None
             except Exception as e:
-                logger.error(f"  ✗ Failed {prompt.illustration_id}: {e}")
-                progress.update(f"{prompt.illustration_id} (error)")
-
-        progress.complete()
+                print(f"   ✗ {prompt.illustration_id}: {e}")
+                return None
+        
+        results = await asyncio.gather(*[generate_one(p) for p in prompts])
+        
+        images = {}
+        for result in results:
+            if result:
+                ill_id, path = result
+                images[ill_id] = path
+        
+        print(f"   ✓ {len(images)}/{len(prompts)} images generated
+")
         return images
 
     async def _update_markdown(
