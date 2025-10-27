@@ -23,6 +23,28 @@
     </div>
 </div>
 
+<!-- Review Drawer -->
+<div id="review-drawer" class="review-drawer">
+    <div class="drawer-header">
+        <h2>Review Issues</h2>
+        <button id="drawer-close" class="drawer-close">✕</button>
+    </div>
+    <div class="drawer-content">
+        <div class="issues-section">
+            <h3>Source Accuracy</h3>
+            <div id="source-issues" class="issues-list"></div>
+        </div>
+        <div class="issues-section">
+            <h3>Style Consistency</h3>
+            <div id="style-issues" class="issues-list"></div>
+        </div>
+    </div>
+    <div class="drawer-actions">
+        <button id="regenerate-btn" class="btn btn-secondary">Regenerate with Fixes</button>
+    </div>
+</div>
+<div id="drawer-overlay" class="drawer-overlay"></div>
+
 <style>
 .review-container {
     max-width: 1200px;
@@ -137,6 +159,113 @@
     border-radius: 6px;
     overflow-x: auto;
 }
+
+/* Review Drawer */
+.review-drawer {
+    position: fixed;
+    top: 0;
+    right: -400px;
+    width: 400px;
+    height: 100vh;
+    background: var(--color-bg-secondary);
+    box-shadow: var(--shadow-modal);
+    transition: right var(--duration-standard) var(--easing-standard);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+}
+
+.review-drawer.open {
+    right: 0;
+}
+
+.drawer-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--duration-standard) var(--easing-standard);
+    z-index: 999;
+}
+
+.drawer-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.drawer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--color-bg-tertiary);
+}
+
+.drawer-header h2 {
+    font-size: 1.5rem;
+    color: var(--color-text-primary);
+}
+
+.drawer-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    padding: 0.5rem;
+}
+
+.drawer-close:hover {
+    color: var(--color-text-primary);
+}
+
+.drawer-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+}
+
+.issues-section {
+    margin-bottom: 2rem;
+}
+
+.issues-section h3 {
+    font-size: 1.125rem;
+    color: var(--color-text-primary);
+    margin-bottom: 1rem;
+}
+
+.issues-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.issue-item {
+    background: var(--color-bg-primary);
+    padding: 1rem;
+    border-radius: 6px;
+    border-left: 3px solid var(--color-warning);
+}
+
+.issue-item.empty {
+    color: var(--color-text-tertiary);
+    font-style: italic;
+    border-left-color: var(--color-success);
+}
+
+.drawer-actions {
+    padding: 1.5rem;
+    border-top: 1px solid var(--color-bg-tertiary);
+}
+
+.drawer-actions .btn {
+    width: 100%;
+}
 </style>
 
 <script>
@@ -206,9 +335,61 @@ document.getElementById('approve-btn').addEventListener('click', async () => {
     window.location.href = data.redirect;
 });
 
-// Review toggle (placeholder for Chunk 7)
+// Review drawer
+const drawer = document.getElementById('review-drawer');
+const overlay = document.getElementById('drawer-overlay');
+
+function openDrawer() {
+    drawer.classList.add('open');
+    overlay.classList.add('active');
+}
+
+function closeDrawer() {
+    drawer.classList.remove('open');
+    overlay.classList.remove('active');
+}
+
+// Load review data
+async function loadReviewData() {
+    const response = await fetch(`/sessions/${sessionId}/review-data`);
+    const data = await response.json();
+
+    // Source issues
+    const sourceList = document.getElementById('source-issues');
+    if (data.source_issues.length === 0) {
+        sourceList.innerHTML = '<div class="issue-item empty">No source accuracy issues found ✓</div>';
+    } else {
+        sourceList.innerHTML = data.source_issues.map(issue =>
+            `<div class="issue-item">${issue}</div>`
+        ).join('');
+    }
+
+    // Style issues
+    const styleList = document.getElementById('style-issues');
+    if (data.style_issues.length === 0) {
+        styleList.innerHTML = '<div class="issue-item empty">No style consistency issues found ✓</div>';
+    } else {
+        styleList.innerHTML = data.style_issues.map(issue =>
+            `<div class="issue-item">${issue}</div>`
+        ).join('');
+    }
+}
+
 document.getElementById('review-toggle').addEventListener('click', () => {
-    alert('Review drawer will be implemented in Chunk 7');
+    loadReviewData();
+    openDrawer();
 });
+
+document.getElementById('drawer-close').addEventListener('click', closeDrawer);
+overlay.addEventListener('click', closeDrawer);
+
+// Regenerate (placeholder for future iteration)
+document.getElementById('regenerate-btn').addEventListener('click', () => {
+    alert('Regeneration will trigger a new review iteration in future versions');
+    closeDrawer();
+});
+
+// Load review data on page load
+loadReviewData();
 </script>
 {% endblock %}
