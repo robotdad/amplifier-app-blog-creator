@@ -112,15 +112,27 @@ common_phrases, writing_patterns, voice, examples"""
             return _default_profile()
 
         # Ensure we have all required fields with defaults
+        # LLMs sometimes return dicts/lists instead of strings - convert to strings
+        def ensure_string(value, default):
+            if isinstance(value, str):
+                return value
+            if isinstance(value, dict):
+                # If dict, try to get a sensible string representation
+                return value.get("primary", value.get("main", str(value)))
+            if isinstance(value, list) and value:
+                # If list, join or take first element
+                return value[0] if isinstance(value[0], str) else str(value)
+            return default
+
         profile_data = {
-            "tone": parsed.get("tone", "conversational"),
-            "vocabulary_level": parsed.get("vocabulary_level", "moderate"),
-            "sentence_structure": parsed.get("sentence_structure", "varied"),
-            "paragraph_length": parsed.get("paragraph_length", "medium"),
-            "common_phrases": parsed.get("common_phrases", []),
-            "writing_patterns": parsed.get("writing_patterns", []),
-            "voice": parsed.get("voice", "active"),
-            "examples": parsed.get("examples", []),
+            "tone": ensure_string(parsed.get("tone"), "conversational"),
+            "vocabulary_level": ensure_string(parsed.get("vocabulary_level"), "moderate"),
+            "sentence_structure": ensure_string(parsed.get("sentence_structure"), "varied"),
+            "paragraph_length": ensure_string(parsed.get("paragraph_length"), "medium"),
+            "common_phrases": parsed.get("common_phrases", []) if isinstance(parsed.get("common_phrases"), list) else [],
+            "writing_patterns": parsed.get("writing_patterns", []) if isinstance(parsed.get("writing_patterns"), list) else [],
+            "voice": ensure_string(parsed.get("voice"), "active"),
+            "examples": parsed.get("examples", []) if isinstance(parsed.get("examples"), list) else [],
         }
 
         return StyleProfile(**profile_data)
