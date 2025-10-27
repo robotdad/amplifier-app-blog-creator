@@ -15,20 +15,19 @@
                 <span class="label-hint">Markdown or text file with your initial thoughts</span>
             </label>
             <div class="path-input">
-                <div class="path-input-row" id="idea-input-group">
+                <div class="path-input-row">
                     <input
                         type="text"
                         id="idea_path"
-                        name="path"
+                        name="idea_path"
                         class="input-field"
                         placeholder="~/Documents/blog-idea.md"
                         required
                         hx-post="/sessions/{{ session_id }}/validate-path"
                         hx-trigger="blur, keyup changed delay:500ms"
                         hx-target="#idea-feedback"
-                        hx-include="#idea-input-group"
+                        hx-vals='{"type": "file"}'
                     >
-                    <input type="hidden" name="type" value="file">
                     <button type="button" class="button button-secondary" onclick="browseFile('idea_path')">
                         Browse
                     </button>
@@ -44,20 +43,19 @@
                 <span class="label-hint">Folder containing your previous blog posts (.md files)</span>
             </label>
             <div class="path-input">
-                <div class="path-input-row" id="writings-input-group">
+                <div class="path-input-row">
                     <input
                         type="text"
                         id="writings_dir"
-                        name="path"
+                        name="writings_dir"
                         class="input-field"
                         placeholder="~/Documents/blog-posts"
                         required
                         hx-post="/sessions/{{ session_id }}/validate-path"
                         hx-trigger="blur, keyup changed delay:500ms"
                         hx-target="#writings-feedback"
-                        hx-include="#writings-input-group"
+                        hx-vals='{"type": "directory"}'
                     >
-                    <input type="hidden" name="type" value="directory">
                     <button type="button" class="button button-secondary" onclick="browseDirectory('writings_dir')">
                         Browse
                     </button>

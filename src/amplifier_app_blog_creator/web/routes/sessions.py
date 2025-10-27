@@ -54,9 +54,11 @@ async def validate_path(
 ):
     """Validate file or directory path."""
     try:
-        # Get form data from request
+        # Get form data from request (HTMX sends via hx-vals)
         form_data = await request.form()
-        path = form_data.get("path", "")
+
+        # Get path from either idea_path or writings_dir field
+        path = form_data.get("idea_path") or form_data.get("writings_dir", "")
         type = form_data.get("type", "")
 
         if not path or not type:
