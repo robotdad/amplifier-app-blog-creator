@@ -23,15 +23,11 @@
                         class="input-field"
                         placeholder="~/Documents/blog-idea.md"
                         required
-                        hx-post="/sessions/{{ session_id }}/validate-path?type=file"
-                        hx-trigger="blur, keyup changed delay:500ms"
-                        hx-target="#idea-feedback"
                     >
                     <button type="button" class="button button-secondary" onclick="browseFile('idea_path')">
                         Browse
                     </button>
                 </div>
-                <div id="idea-feedback" class="feedback-container"></div>
             </div>
         </div>
 
@@ -50,15 +46,11 @@
                         class="input-field"
                         placeholder="~/Documents/blog-posts"
                         required
-                        hx-post="/sessions/{{ session_id }}/validate-path?type=directory"
-                        hx-trigger="blur, keyup changed delay:500ms"
-                        hx-target="#writings-feedback"
                     >
                     <button type="button" class="button button-secondary" onclick="browseDirectory('writings_dir')">
                         Browse
                     </button>
                 </div>
-                <div id="writings-feedback" class="feedback-container"></div>
             </div>
         </div>
 
@@ -79,7 +71,7 @@
 
         <!-- Actions -->
         <div class="form-actions">
-            <button type="submit" class="button button-primary" id="start-btn" disabled>
+            <button type="submit" class="button button-primary" id="start-btn">
                 Start Creation
             </button>
         </div>
@@ -87,32 +79,6 @@
 </div>
 
 <script>
-// Enable start button only when both paths are valid
-let ideaValid = false;
-let writingsValid = false;
-
-function updateStartButton() {
-    const startBtn = document.getElementById('start-btn');
-    startBtn.disabled = !(ideaValid && writingsValid);
-}
-
-// Listen for HTMX events to track validation state
-document.body.addEventListener('htmx:afterSwap', function(event) {
-    const target = event.detail.target.id;
-
-    if (target === 'idea-feedback') {
-        const feedback = event.detail.target.querySelector('.feedback-valid');
-        ideaValid = !!feedback;
-        updateStartButton();
-    }
-
-    if (target === 'writings-feedback') {
-        const feedback = event.detail.target.querySelector('.feedback-valid');
-        writingsValid = !!feedback;
-        updateStartButton();
-    }
-});
-
 // File browsing functionality
 function browseFile(inputId) {
     const input = document.createElement('input');
@@ -123,8 +89,6 @@ function browseFile(inputId) {
         if (file) {
             const pathInput = document.getElementById(inputId);
             pathInput.value = file.path || file.name;
-            // Trigger validation
-            htmx.trigger(pathInput, 'blur');
         }
     };
     input.click();
@@ -147,8 +111,6 @@ function browseDirectory(inputId) {
             } else {
                 pathInput.value = firstFile.path || '';
             }
-            // Trigger validation
-            htmx.trigger(pathInput, 'blur');
         }
     };
     input.click();
