@@ -58,8 +58,12 @@ async def validate_path(
         # Get form data from request
         form_data = await request.form()
 
-        # Get path from either idea_path or writings_dir field
-        path = form_data.get("idea_path") or form_data.get("writings_dir", "")
+        # HTMX sends the triggering input's name/value
+        # Get path from whichever field is present
+        path = form_data.get("idea_path") or form_data.get("writings_dir") or ""
+
+        # Debug: log what we received
+        logger.debug(f"Validation request: path={path}, type={type}, form_data={dict(form_data)}")
 
         if not path or not type:
             return HTMLResponse(
