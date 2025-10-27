@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+
+{% block title %}Review Your Blog Post{% endblock %}
+
+{% block content %}
+<div class="review-container">
+    <div class="review-header">
+        <h1>Review Your Blog Post</h1>
+        <div class="review-controls">
+            <button id="preview-toggle" class="btn btn-secondary">Preview</button>
+            <button id="review-toggle" class="btn btn-secondary">Review Issues</button>
+            <button id="approve-btn" class="btn btn-primary">Approve & Finish</button>
+        </div>
+    </div>
+
+    <div class="editor-container">
+        <div id="editor-pane" class="editor-pane">
+            <textarea id="markdown-editor">{{ draft }}</textarea>
+        </div>
+        <div id="preview-pane" class="preview-pane" style="display: none;">
+            <div id="preview-content" class="markdown-preview"></div>
+        </div>
+    </div>
+</div>
+
+<style>
+.review-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.review-header h1 {
+    font-size: 2rem;
+    color: var(--color-text-primary);
+}
+
+.review-controls {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    border: none;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all var(--duration-quick) var(--easing-standard);
+}
+
+.btn-primary {
+    background: var(--color-accent-primary);
+    color: white;
+    box-shadow: var(--shadow-button);
+}
+
+.btn-primary:hover {
+    background: var(--color-accent-hover);
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background: var(--color-bg-tertiary);
+    color: var(--color-text-primary);
+}
+
+.btn-secondary:hover {
+    background: var(--color-bg-secondary);
+}
+
+.editor-container {
+    background: var(--color-bg-secondary);
+    border-radius: 10px;
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+    min-height: 600px;
+}
+
+.editor-pane, .preview-pane {
+    padding: 1.5rem;
+}
+
+#markdown-editor {
+    width: 100%;
+    min-height: 600px;
+    font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+    font-size: 1rem;
+    line-height: 1.6;
+    border: none;
+    resize: vertical;
+    background: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    padding: 1rem;
+    border-radius: 6px;
+}
+
+.markdown-preview {
+    font-size: 1rem;
+    line-height: 1.8;
+    color: var(--color-text-primary);
+}
+
+.markdown-preview h1 {
+    font-size: 2rem;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+}
+
+.markdown-preview h2 {
+    font-size: 1.5rem;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.markdown-preview p {
+    margin-bottom: 1rem;
+}
+
+.markdown-preview code {
+    background: var(--color-bg-tertiary);
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    font-family: 'SF Mono', 'Monaco', monospace;
+}
+
+.markdown-preview pre {
+    background: var(--color-bg-tertiary);
+    padding: 1rem;
+    border-radius: 6px;
+    overflow-x: auto;
+}
+</style>
+
+<script>
+const sessionId = "{{ session_id }}";
+let autoSaveTimeout;
+
+// Preview toggle
+document.getElementById('preview-toggle').addEventListener('click', async () => {
+    const editorPane = document.getElementById('editor-pane');
+    const previewPane = document.getElementById('preview-pane');
+    const btn = document.getElementById('preview-toggle');
+
+    if (previewPane.style.display === 'none') {
+        // Show preview
+        const content = document.getElementById('markdown-editor').value;
+
+        // Render markdown
+        const formData = new FormData();
+        formData.append('content', content);
+
+        const response = await fetch('/sessions/render-markdown', {
+            method: 'POST',
+            body: formData
+        });
+
+        const html = await response.text();
+        document.getElementById('preview-content').innerHTML = html;
+
+        editorPane.style.display = 'none';
+        previewPane.style.display = 'block';
+        btn.textContent = 'Edit';
+    } else {
+        // Show editor
+        editorPane.style.display = 'block';
+        previewPane.style.display = 'none';
+        btn.textContent = 'Preview';
+    }
+});
+
+// Auto-save on edit
+document.getElementById('markdown-editor').addEventListener('input', () => {
+    clearTimeout(autoSaveTimeout);
+    autoSaveTimeout = setTimeout(async () => {
+        const content = document.getElementById('markdown-editor').value;
+
+        await fetch(`/sessions/${sessionId}/draft`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content })
+        });
+
+        console.log('Auto-saved');
+    }, 1000);
+});
+
+// Approve button
+document.getElementById('approve-btn').addEventListener('click', async () => {
+    if (!confirm('Are you sure you want to approve and finish?')) {
+        return;
+    }
+
+    const response = await fetch(`/sessions/${sessionId}/approve`, {
+        method: 'POST'
+    });
+
+    const data = await response.json();
+    window.location.href = data.redirect;
+});
+
+// Review toggle (placeholder for Chunk 7)
+document.getElementById('review-toggle').addEventListener('click', () => {
+    alert('Review drawer will be implemented in Chunk 7');
+});
+</script>
+{% endblock %}

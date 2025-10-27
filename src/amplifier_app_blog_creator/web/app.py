@@ -11,6 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 
 from .routes import configuration
+from .routes import content
 from .routes import progress
 from .routes import sessions
 from .templates_config import templates
@@ -40,6 +41,7 @@ app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 app.include_router(configuration.router)
 app.include_router(sessions.router)
 app.include_router(progress.router)
+app.include_router(content.router)
 
 
 @app.get("/test")
