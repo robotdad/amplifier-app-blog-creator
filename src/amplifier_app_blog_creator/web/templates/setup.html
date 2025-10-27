@@ -23,10 +23,9 @@
                         class="input-field"
                         placeholder="~/Documents/blog-idea.md"
                         required
-                        hx-post="/sessions/{{ session_id }}/validate-path"
+                        hx-post="/sessions/{{ session_id }}/validate-path?type=file"
                         hx-trigger="blur, keyup changed delay:500ms"
                         hx-target="#idea-feedback"
-                        hx-vals='{"type": "file"}'
                     >
                     <button type="button" class="button button-secondary" onclick="browseFile('idea_path')">
                         Browse
@@ -51,10 +50,9 @@
                         class="input-field"
                         placeholder="~/Documents/blog-posts"
                         required
-                        hx-post="/sessions/{{ session_id }}/validate-path"
+                        hx-post="/sessions/{{ session_id }}/validate-path?type=directory"
                         hx-trigger="blur, keyup changed delay:500ms"
                         hx-target="#writings-feedback"
-                        hx-vals='{"type": "directory"}'
                     >
                     <button type="button" class="button button-secondary" onclick="browseDirectory('writings_dir')">
                         Browse
