@@ -61,8 +61,9 @@ async def validate_path(
         # HTMX sends whichever input triggered - get the value
         # It could be in idea_path, writings_dir, or just the first form value
         path = (
-            form_data.get("idea_path") or
-            form_data.get("writings_dir") or
+            form_data.get("idea_path")
+            or form_data.get("writings_dir")
+            or
             # Fallback: get first value from form
             (list(form_data.values())[0] if form_data else "")
         )
