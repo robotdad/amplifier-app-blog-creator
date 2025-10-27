@@ -137,9 +137,9 @@ def main(
     state_manager.save()
 
     # Print pipeline banner
-    print("\n" + "=" * 60)
+    print("\n" + "=" * 3)
     print("🚀 BLOG CREATOR PIPELINE")
-    print("=" * 60)
+    print("=" * 3)
     print(f"Session: {state_manager.session_dir}")
     print(f"Idea: {idea.name}")
     print(f"Writings: {writings_dir}")
@@ -148,7 +148,7 @@ def main(
     print(f"Max iterations: {max_iterations}")
     if with_images:
         print(f"Images: {max_images} max (style: {image_style or 'default'})")
-    print("=" * 60 + "\n")
+    print("=" * 3 + "\n")
 
     success = asyncio.run(
         run_pipeline(
@@ -164,9 +164,9 @@ def main(
     )
 
     if success:
-        print("\n" + "=" * 60)
+        print("\n" + "=" * 3)
         print("✨ BLOG CREATION COMPLETE")
-        print("=" * 60)
+        print("=" * 3)
 
         if state_manager.state.output_path:
             print(f"\n📄 Blog post: {state_manager.state.output_path}")
@@ -178,7 +178,7 @@ def main(
                 print("   (Images embedded at contextually relevant sections)")
 
         print(f"\n📁 Session directory: {state_manager.session_dir}")
-        print("=" * 60 + "\n")
+        print("=" * 3 + "\n")
         return 0
 
     logger.error("\n❌ Blog creation failed")
@@ -259,7 +259,7 @@ async def run_pipeline(
         # Phase 3: Illustration (optional)
         if with_images:
             print("\n🎨 Generating Contextual Illustrations...")
-            print("=" * 60)
+            print("=" * 3)
             illustration_phase = IllustrationPhase()
 
             images_dir = state_manager.session_dir / "images"

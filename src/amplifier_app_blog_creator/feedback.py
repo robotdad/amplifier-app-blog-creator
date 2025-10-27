@@ -100,9 +100,9 @@ class UserFeedbackHandler:
         Returns:
             Parsed feedback as dictionary
         """
-        print("\n" + "=" * 60)
+        print("\n" + "=" * 3)
         print(f"ITERATION {iteration} - BLOG DRAFT REVIEW")
-        print("=" * 60)
+        print("=" * 3)
 
         if draft_file_path is None:
             draft_file_path = Path("data") / f"draft_iter_{iteration}.md"

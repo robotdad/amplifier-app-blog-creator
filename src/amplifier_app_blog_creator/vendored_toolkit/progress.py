@@ -206,7 +206,7 @@ def log_stage(stage: str, description: str | None = None) -> None:
         stage: Stage name (e.g., "Validation", "Processing")
         description: Optional description of what this stage does
     """
-    separator = "=" * 60
+    separator = "=" * 3
     print(separator)  # Use print for CLI visibility
     print(f"Stage: {stage}")
     if description:

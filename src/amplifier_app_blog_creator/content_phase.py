@@ -70,7 +70,7 @@ class ContentPhase:
 
                 print(f"\n{'=' * 60}")
                 print(f"ITERATION {self.state.state.iteration} - BLOG DRAFT REVIEW")
-                print("=" * 60)
+                print("=" * 3)
 
                 # Source review
                 await self._review_sources()
