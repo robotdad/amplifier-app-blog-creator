@@ -12,7 +12,6 @@ from .feedback import UserFeedbackHandler
 from .reviewers.source_reviewer import SourceReviewer
 from .reviewers.style_reviewer import StyleReviewer
 from .session import SessionManager as StateManager
-from .vendored_toolkit import log_stage
 
 logger = logging.getLogger(__name__)
 
@@ -50,16 +49,12 @@ class ContentPhase:
         Returns:
             True if successful
         """
-        log_stage("Content Creation", "Generating blog post with style matching")
-        logger.info("Starting content creation phase")
-
         # Store inputs
         self.brain_dump = brain_dump
         self.additional_instructions = additional_instructions or ""
 
         # Resume from saved stage if applicable
         stage = self.state.state.stage
-        logger.info(f"Current stage: {stage}")
 
         try:
             # Write initial draft
@@ -70,8 +65,12 @@ class ContentPhase:
             # Iteration loop
             while stage in ["draft_written", "revision_complete"]:
                 if not self.state.increment_iteration():
-                    logger.warning("Max iterations reached")
+                    print("\n   ⚠️  Max iterations reached")
                     break
+
+                print(f"\n{'=' * 60}")
+                print(f"ITERATION {self.state.state.iteration} - BLOG DRAFT REVIEW")
+                print("=" * 60)
 
                 # Source review
                 await self._review_sources()
@@ -90,6 +89,7 @@ class ContentPhase:
                 # User feedback
                 feedback = await self._get_user_feedback()
                 if feedback.get("is_approved"):
+                    print("\n   ✓ Draft approved by user")
                     break
 
                 if feedback.get("continue_iteration"):
@@ -102,14 +102,15 @@ class ContentPhase:
             return True
 
         except Exception as e:
-            logger.error(f"Content phase failed: {e}")
+            print(f"\n❌ Content phase failed: {e}")
+            logger.exception("Content phase error details")
             return False
 
     async def _write_initial_draft(
         self, brain_dump: str, style_profile: dict, additional_instructions: str | None
     ) -> None:
         """Write initial blog draft."""
-        logger.info("\n✍️ Writing initial blog draft...")
+        print("   Drafting initial version...")
         self.state.update_stage("writing_draft")
 
         draft = await self.blog_writer.write_blog(
@@ -118,13 +119,13 @@ class ContentPhase:
             additional_instructions=additional_instructions,
         )
 
-        logger.debug(f"Generated draft length: {len(draft)} chars")
         self.state.update_draft(draft)
         self.state.update_stage("draft_written")
+        print(f"   ✓ Draft complete ({len(draft)} chars)\n")
 
     async def _review_sources(self) -> None:
         """Review draft for source accuracy."""
-        logger.info("\n🔍 Reviewing source accuracy...")
+        print("\n   Reviewing for accuracy...")
 
         review = await self.source_reviewer.review_sources(
             self.state.state.current_draft,
@@ -136,9 +137,15 @@ class ContentPhase:
         self.state.set_source_review(review)
         self.state.add_iteration_history({"type": "source_review", "review": review})
 
+        issues_count = len(review.get("issues", []))
+        if issues_count > 0:
+            print(f"   ✓ Source review complete ({issues_count} issues found)")
+        else:
+            print("   ✓ Source review complete (no issues)")
+
     async def _review_style(self) -> None:
         """Review draft for style consistency."""
-        logger.info("\n🎨 Reviewing style consistency...")
+        print("\n   Reviewing for style...")
 
         review = await self.style_reviewer.review_style(
             self.state.state.current_draft,
@@ -148,9 +155,15 @@ class ContentPhase:
         self.state.set_style_review(review)
         self.state.add_iteration_history({"type": "style_review", "review": review})
 
+        issues_count = len(review.get("issues", []))
+        if issues_count > 0:
+            print(f"   ✓ Style review complete ({issues_count} issues found)")
+        else:
+            print("   ✓ Style review complete (no issues)")
+
     async def _revise_draft(self) -> None:
         """Revise draft based on reviews."""
-        logger.info("\n🔄 Revising draft based on reviews...")
+        print("\n   Revising draft based on reviews...")
 
         # Compile feedback from reviews
         feedback = {
@@ -169,10 +182,11 @@ class ContentPhase:
 
         self.state.update_draft(draft)
         self.state.update_stage("revision_complete")
+        print(f"   ✓ Revision complete ({len(draft)} chars)")
 
     async def _get_user_feedback(self) -> dict:
         """Get user feedback on current draft."""
-        logger.info("\n👤 Getting user feedback...")
+        print("\n   Requesting user feedback...")
 
         draft_file_path = self.state.session_dir / f"draft_iter_{self.state.state.iteration}.md"
 
@@ -201,7 +215,7 @@ class ContentPhase:
         if not parsed_feedback.get("has_feedback"):
             return
 
-        logger.info("\n📝 Applying user feedback...")
+        print("\n   Applying user feedback...")
 
         # Format feedback for revision
         feedback = self.user_feedback.format_feedback_for_revision(parsed_feedback)
@@ -220,8 +234,9 @@ class ContentPhase:
 
         # Increment BEFORE saving so we write to next iteration
         if increment_after and not self.state.increment_iteration():
-            logger.warning("Max iterations reached while applying user feedback")
+            print("   ⚠️  Max iterations reached while applying user feedback")
             return
 
         self.state.update_draft(draft)
         self.state.update_stage("revision_complete")
+        print(f"   ✓ Feedback applied ({len(draft)} chars)")

@@ -13,8 +13,10 @@ from amplifier_module_style_extraction import StyleExtractor
 from .content_phase import ContentPhase
 from .illustration_phase import IllustrationPhase
 from .session import SessionManager as StateManager
-from .vendored_toolkit import log_stage
 from .vendored_toolkit import safe_write_text
+
+# Configure logging with simple format
+logging.basicConfig(level=logging.INFO, format="%(message)s", force=True)
 
 logger = logging.getLogger(__name__)
 
@@ -102,7 +104,7 @@ def main(
     """
     # Setup logging
     if verbose:
-        logger.logger.setLevel("DEBUG")
+        logging.getLogger().setLevel(logging.DEBUG)
 
     # Determine session directory
     session_dir = None
@@ -112,7 +114,7 @@ def main(
             sessions = sorted([d for d in base_dir.iterdir() if d.is_dir()], reverse=True)
             if sessions:
                 session_dir = sessions[0]
-                logger.info(f"Resuming session: {session_dir.name}")
+                print(f"Resuming session: {session_dir.name}")
 
     # Create state manager
     state_manager = StateManager(session_dir)
@@ -120,7 +122,7 @@ def main(
     # Handle reset
     if reset:
         state_manager.reset()
-        logger.info("State reset - starting fresh")
+        print("State reset - starting fresh")
 
     # Set max iterations
     state_manager.state.max_iterations = max_iterations
@@ -134,15 +136,19 @@ def main(
         state_manager.state.additional_instructions = instructions
     state_manager.save()
 
-    logger.info("🚀 Starting Blog Creator Pipeline")
-    logger.info(f"  Session: {state_manager.session_dir}")
-    logger.info(f"  Idea: {idea.name}")
-    logger.info(f"  Writings dir: {writings_dir}")
+    # Print pipeline banner
+    print("\n" + "=" * 60)
+    print("🚀 BLOG CREATOR PIPELINE")
+    print("=" * 60)
+    print(f"Session: {state_manager.session_dir}")
+    print(f"Idea: {idea.name}")
+    print(f"Writings: {writings_dir}")
     if instructions:
-        logger.info(f"  Instructions: {instructions}")
-    logger.info(f"  Max iterations: {max_iterations}")
+        print(f"Instructions: {instructions}")
+    print(f"Max iterations: {max_iterations}")
     if with_images:
-        logger.info(f"  Images: {max_images} (style: {image_style or 'default'})")
+        print(f"Images: {max_images} max (style: {image_style or 'default'})")
+    print("=" * 60 + "\n")
 
     success = asyncio.run(
         run_pipeline(
@@ -165,11 +171,11 @@ def main(
         if state_manager.state.output_path:
             print(f"\n📄 Blog post: {state_manager.state.output_path}")
 
-        if with_images and hasattr(state_manager.state, 'illustrated_output_path'):
+        if with_images and hasattr(state_manager.state, "illustrated_output_path"):
             illustrated_path = state_manager.state.illustrated_output_path
             if illustrated_path:
                 print(f"🎨 Illustrated version: {illustrated_path}")
-                print(f"   (Images embedded at contextually relevant sections)")
+                print("   (Images embedded at contextually relevant sections)")
 
         print(f"\n📁 Session directory: {state_manager.session_dir}")
         print("=" * 60 + "\n")
@@ -205,15 +211,15 @@ async def run_pipeline(
         True if successful
     """
     try:
-        log_stage("Blog Creator Pipeline", f"Idea: {idea.name}")
-
         # Load brain dump
         brain_dump = idea.read_text()
-        logger.info(f"Loaded idea: {idea.name}")
 
         # Phase 1: Extract style if needed
         if state_manager.state.stage == "initialized":
-            logger.info("\n📝 Extracting author's style...")
+            print("\n📝 Extracting Author's Writing Style...")
+            writings_list = list(writings_dir.glob("**/*.md"))
+            print(f"   Analyzing {len(writings_list)} writing samples")
+
             state_manager.update_stage("extracting_style")
 
             style_extractor = StyleExtractor()
@@ -221,8 +227,10 @@ async def run_pipeline(
 
             state_manager.set_style_profile(style_profile.model_dump())
             state_manager.update_stage("style_extracted")
+            print("   ✓ Style extracted\n")
 
         # Phase 2: Content creation
+        print("\n✍️  Generating Blog Content...")
         content_phase = ContentPhase(state_manager)
         success = await content_phase.run(
             brain_dump=brain_dump,
@@ -246,11 +254,12 @@ async def run_pipeline(
         state_manager.state.output_path = str(output_path)
         state_manager.save()
 
-        logger.info(f"\n💾 Blog post saved to: {output_path}")
+        print(f"\n💾 Blog post saved: {output_path.name}")
 
         # Phase 3: Illustration (optional)
         if with_images:
-            logger.info("\n🎨 Generating contextual illustrations...")
+            print("\n🎨 Generating Contextual Illustrations...")
+            print("=" * 60)
             illustration_phase = IllustrationPhase()
 
             images_dir = state_manager.session_dir / "images"
@@ -271,13 +280,14 @@ async def run_pipeline(
             if illustrated_path != output_path:
                 state_manager.state.illustrated_output_path = str(illustrated_path)
                 state_manager.save()
-                logger.info(f"✅ Illustrated blog post: {illustrated_path}")
+                print(f"\n   ✓ Illustrated markdown created: {illustrated_path.name}")
 
         state_manager.mark_complete()
         return True
 
     except Exception as e:
-        logger.error(f"Pipeline failed: {e}")
+        print(f"\n❌ Pipeline failed: {e}")
+        logger.exception("Pipeline error details")
         return False
 
 

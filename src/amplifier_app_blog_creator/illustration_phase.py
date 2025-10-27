@@ -5,18 +5,16 @@ creates images, and inserts them at appropriate line numbers in the markdown.
 """
 
 import logging
+import os
 from pathlib import Path
 
 from amplifier_module_image_generation import ImageGenerator
-from openai import OpenAI
-
 from anthropic import AsyncAnthropic
-from .utils.llm_parsing import parse_llm_json
-import os
+from openai import OpenAI
 
 from .models import IllustrationPoint
 from .models import ImagePrompt
-from .vendored_toolkit import log_stage
+from .utils.llm_parsing import parse_llm_json
 from .vendored_toolkit import ProgressReporter
 
 logger = logging.getLogger(__name__)
@@ -48,32 +46,32 @@ class IllustrationPhase:
         Returns:
             Path to illustrated markdown file
         """
-        log_stage("Illustration Generation", "Creating contextual images")
-        logger.info(f"Starting contextual illustration generation (max {max_images} images)")
-
         # Stage 1: Analyze content to identify illustration points
+        print("   Analyzing content for illustration points...")
         points = await self._analyze_content(article_path, max_images)
         if not points:
-            logger.warning("No illustration points identified")
+            print("   ⚠️  No illustration points identified")
             return article_path
 
-        logger.info(f"✓ Identified {len(points)} illustration points")
+        point_titles = ", ".join([p.section_title for p in points])
+        print(f"   ✓ Identified {len(points)} points: {point_titles}\n")
 
         # Stage 2: Generate contextual prompts for each point
+        print("   Generating contextual prompts...")
         prompts = await self._generate_prompts(points, article_path, style)
-        logger.info(f"✓ Generated {len(prompts)} contextual prompts")
+        print(f"   ✓ {len(prompts)} prompts created\n")
 
         # Stage 3: Generate images mapped to points
         images = await self._generate_images(prompts, output_dir)
-        logger.info(f"✓ Generated {len(images)} images")
 
         if not images:
-            logger.warning("No images generated")
+            print("   ⚠️  No images generated")
             return article_path
 
         # Stage 4: Update markdown with images at specific line numbers
+        print("\n   Inserting images into markdown...")
         illustrated_path = await self._update_markdown(article_path, images, points, output_dir)
-        logger.info(f"✓ Created illustrated markdown: {illustrated_path.name}")
+        print("   ✓ Illustrated markdown created")
 
         return illustrated_path
 
@@ -147,15 +145,17 @@ class IllustrationPhase:
             context_before = lines[max(0, line_num - 1)] if line_num > 0 else ""
             context_after = lines[min(len(lines) - 1, line_num + 1)] if line_num < len(lines) - 1 else ""
 
-            points.append(IllustrationPoint(
-                section_title=section_title,
-                section_index=idx,
-                line_number=line_num,
-                context_before=context_before[:100],
-                context_after=context_after[:100],
-                importance="high",
-                suggested_placement="before_section"
-            ))
+            points.append(
+                IllustrationPoint(
+                    section_title=section_title,
+                    section_index=idx,
+                    line_number=line_num,
+                    context_before=context_before[:100],
+                    context_after=context_after[:100],
+                    importance="high",
+                    suggested_placement="before_section",
+                )
+            )
 
         logger.info(f"Selected sections: {[p.section_title for p in points]}")
         return points
@@ -176,15 +176,17 @@ class IllustrationPhase:
         points = []
         for i in range(max_images):
             line_num = (i + 1) * step
-            points.append(IllustrationPoint(
-                section_title=f"Section {i+1}",
-                section_index=i,
-                line_number=line_num,
-                context_before="",
-                context_after="",
-                importance="medium",
-                suggested_placement="mid_section"
-            ))
+            points.append(
+                IllustrationPoint(
+                    section_title=f"Section {i + 1}",
+                    section_index=i,
+                    line_number=line_num,
+                    context_before="",
+                    context_after="",
+                    importance="medium",
+                    suggested_placement="mid_section",
+                )
+            )
 
         return points
 
@@ -389,7 +391,7 @@ Return JSON with:
             model="claude-3-5-haiku-20241022",
             max_tokens=2048,
             system="You are an expert at creating image generation prompts. Respond with JSON only.",
-            messages=[{"role": "user", "content": prompt_text}]
+            messages=[{"role": "user", "content": prompt_text}],
         )
 
         if not response.content:
