@@ -15,19 +15,24 @@
                 <span class="label-hint">Markdown or text file with your initial thoughts</span>
             </label>
             <div class="path-input">
-                <input
-                    type="text"
-                    id="idea_path"
-                    name="idea_path"
-                    class="input-field"
-                    placeholder="~/Documents/blog-idea.md"
-                    required
-                    hx-post="/sessions/{{ session_id }}/validate-path"
-                    hx-include="[name='idea_path']"
-                    hx-trigger="blur, keyup changed delay:500ms"
-                    hx-target="#idea-feedback"
-                    hx-vals='{"type": "file"}'
-                >
+                <div class="path-input-row" id="idea-input-group">
+                    <input
+                        type="text"
+                        id="idea_path"
+                        name="path"
+                        class="input-field"
+                        placeholder="~/Documents/blog-idea.md"
+                        required
+                        hx-post="/sessions/{{ session_id }}/validate-path"
+                        hx-trigger="blur, keyup changed delay:500ms"
+                        hx-target="#idea-feedback"
+                        hx-include="#idea-input-group"
+                    >
+                    <input type="hidden" name="type" value="file">
+                    <button type="button" class="button button-secondary" onclick="browseFile('idea_path')">
+                        Browse
+                    </button>
+                </div>
                 <div id="idea-feedback" class="feedback-container"></div>
             </div>
         </div>
@@ -39,19 +44,24 @@
                 <span class="label-hint">Folder containing your previous blog posts (.md files)</span>
             </label>
             <div class="path-input">
-                <input
-                    type="text"
-                    id="writings_dir"
-                    name="writings_dir"
-                    class="input-field"
-                    placeholder="~/Documents/blog-posts"
-                    required
-                    hx-post="/sessions/{{ session_id }}/validate-path"
-                    hx-include="[name='writings_dir']"
-                    hx-trigger="blur, keyup changed delay:500ms"
-                    hx-target="#writings-feedback"
-                    hx-vals='{"type": "directory"}'
-                >
+                <div class="path-input-row" id="writings-input-group">
+                    <input
+                        type="text"
+                        id="writings_dir"
+                        name="path"
+                        class="input-field"
+                        placeholder="~/Documents/blog-posts"
+                        required
+                        hx-post="/sessions/{{ session_id }}/validate-path"
+                        hx-trigger="blur, keyup changed delay:500ms"
+                        hx-target="#writings-feedback"
+                        hx-include="#writings-input-group"
+                    >
+                    <input type="hidden" name="type" value="directory">
+                    <button type="button" class="button button-secondary" onclick="browseDirectory('writings_dir')">
+                        Browse
+                    </button>
+                </div>
                 <div id="writings-feedback" class="feedback-container"></div>
             </div>
         </div>
@@ -106,5 +116,46 @@ document.body.addEventListener('htmx:afterSwap', function(event) {
         updateStartButton();
     }
 });
+
+// File browsing functionality
+function browseFile(inputId) {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.md,.txt';
+    input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const pathInput = document.getElementById(inputId);
+            pathInput.value = file.path || file.name;
+            // Trigger validation
+            htmx.trigger(pathInput, 'blur');
+        }
+    };
+    input.click();
+}
+
+function browseDirectory(inputId) {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.webkitdirectory = true;
+    input.onchange = (e) => {
+        const files = e.target.files;
+        if (files.length > 0) {
+            const pathInput = document.getElementById(inputId);
+            // Get directory path from first file
+            const firstFile = files[0];
+            if (firstFile.webkitRelativePath) {
+                const parts = firstFile.webkitRelativePath.split('/');
+                parts.pop(); // Remove filename
+                pathInput.value = parts.join('/');
+            } else {
+                pathInput.value = firstFile.path || '';
+            }
+            // Trigger validation
+            htmx.trigger(pathInput, 'blur');
+        }
+    };
+    input.click();
+}
 </script>
 {% endblock %}

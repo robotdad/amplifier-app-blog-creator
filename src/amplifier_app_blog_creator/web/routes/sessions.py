@@ -49,12 +49,27 @@ async def new_session(request: Request):
 
 @router.post("/{session_id}/validate-path")
 async def validate_path(
+    request: Request,
     session_id: str,
-    path: Annotated[str, Form()],
-    type: Annotated[str, Form()],
 ):
     """Validate file or directory path."""
     try:
+        # Get form data from request
+        form_data = await request.form()
+        path = form_data.get("path", "")
+        type = form_data.get("type", "")
+
+        if not path or not type:
+            return HTMLResponse(
+                """<div class="feedback feedback-invalid">
+                    <span class="feedback-icon">⚠</span>
+                    Missing path or type
+                </div>""",
+                status_code=200,
+            )
+
+        path = str(path)
+        type = str(type)
         p = Path(path).expanduser()
 
         if not p.exists():

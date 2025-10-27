@@ -343,6 +343,23 @@
     position: relative;
 }
 
+.path-input-row {
+    display: flex;
+    gap: var(--space-sm);
+    align-items: center;
+}
+
+.path-input-row .input-field {
+    flex: 1;
+}
+
+.path-input-row .button-secondary {
+    flex-shrink: 0;
+    white-space: nowrap;
+    padding: var(--space-sm) var(--space-md);
+    min-height: auto;
+}
+
 .input-field {
     width: 100%;
     padding: var(--space-sm) var(--space-md);
