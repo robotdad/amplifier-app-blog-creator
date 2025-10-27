@@ -55,15 +55,19 @@ async def validate_path(
 ):
     """Validate file or directory path."""
     try:
-        # Get form data from request
+        # Get form data
         form_data = await request.form()
 
-        # HTMX sends the triggering input's name/value
-        # Get path from whichever field is present
-        path = form_data.get("idea_path") or form_data.get("writings_dir") or ""
+        # HTMX sends whichever input triggered - get the value
+        # It could be in idea_path, writings_dir, or just the first form value
+        path = (
+            form_data.get("idea_path") or
+            form_data.get("writings_dir") or
+            # Fallback: get first value from form
+            (list(form_data.values())[0] if form_data else "")
+        )
 
-        # Debug: log what we received
-        logger.debug(f"Validation request: path={path}, type={type}, form_data={dict(form_data)}")
+        logger.info(f"Validation: type={type}, path={path}")
 
         if not path or not type:
             return HTMLResponse(
