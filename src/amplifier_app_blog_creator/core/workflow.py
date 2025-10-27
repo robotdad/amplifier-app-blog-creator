@@ -1,12 +1,12 @@
 """Workflow orchestrator for blog creation stages."""
 
 import logging
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 
 from ..session import SessionManager
-from .models import RevisionFeedback
 from .models import ReviewResult
+from .models import RevisionFeedback
 from .models import StyleProfile
 from .stages.draft_generation import generate_draft
 from .stages.review import review_draft
@@ -19,7 +19,11 @@ logger = logging.getLogger(__name__)
 class BlogCreatorWorkflow:
     """Orchestrates blog creation stages with session management."""
 
-    def __init__(self: "BlogCreatorWorkflow", session_manager: SessionManager, progress_callback: Callable[[str], None] | None = None):
+    def __init__(
+        self: "BlogCreatorWorkflow",
+        session_manager: SessionManager,
+        progress_callback: Callable[[str], None] | None = None,
+    ):
         """Initialize workflow.
 
         Args:
@@ -50,7 +54,9 @@ class BlogCreatorWorkflow:
 
         return profile
 
-    async def run_draft_generation(self: "BlogCreatorWorkflow", brain_dump: str, additional_instructions: str | None = None) -> str:
+    async def run_draft_generation(
+        self: "BlogCreatorWorkflow", brain_dump: str, additional_instructions: str | None = None
+    ) -> str:
         """Stage 2: Generate initial draft.
 
         Args:
@@ -69,7 +75,10 @@ class BlogCreatorWorkflow:
         style_profile = StyleProfile(**self.session.state.style_profile)
 
         draft = await generate_draft(
-            brain_dump, style_profile, additional_instructions=additional_instructions, progress_callback=self.progress_callback
+            brain_dump,
+            style_profile,
+            additional_instructions=additional_instructions,
+            progress_callback=self.progress_callback,
         )
 
         # Save to session

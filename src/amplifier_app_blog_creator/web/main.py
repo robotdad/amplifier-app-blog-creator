@@ -48,21 +48,12 @@ def main():
     url = f"http://{host}:{port}"
 
     if not no_browser:
-        thread = threading.Thread(
-            target=open_browser_delayed,
-            args=(url,),
-            daemon=True
-        )
+        thread = threading.Thread(target=open_browser_delayed, args=(url,), daemon=True)
         thread.start()
     else:
         print(f"\n🌐 Server starting at: {url}\n")
 
-    uvicorn.run(
-        "amplifier_app_blog_creator.web.app:app",
-        host=host,
-        port=port,
-        log_level="info"
-    )
+    uvicorn.run("amplifier_app_blog_creator.web.app:app", host=host, port=port, log_level="info")
 
 
 if __name__ == "__main__":

@@ -44,13 +44,19 @@ class CLIInputHandler:
 
         # Convert parsed feedback dict to RevisionFeedback model
         if parsed.get("is_approved"):
-            return RevisionFeedback(action="approve", source_issues=source_issues, style_issues=style_issues, user_requests=[])
+            return RevisionFeedback(
+                action="approve", source_issues=source_issues, style_issues=style_issues, user_requests=[]
+            )
 
         if not parsed.get("has_feedback"):
-            return RevisionFeedback(action="skip", source_issues=source_issues, style_issues=style_issues, user_requests=[])
+            return RevisionFeedback(
+                action="skip", source_issues=source_issues, style_issues=style_issues, user_requests=[]
+            )
 
         # Has feedback - format it
         formatted = self.handler.format_feedback_for_revision(parsed)
         user_requests = formatted.get("user_requests", [])
 
-        return RevisionFeedback(action="revise", source_issues=source_issues, style_issues=style_issues, user_requests=user_requests)
+        return RevisionFeedback(
+            action="revise", source_issues=source_issues, style_issues=style_issues, user_requests=user_requests
+        )

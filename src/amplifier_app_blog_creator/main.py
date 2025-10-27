@@ -13,6 +13,7 @@ def main():
             mode = sys.argv[mode_idx + 1]
             if mode == "web":
                 from .web.main import main as web_main
+
                 return web_main()
 
     return cli_main()

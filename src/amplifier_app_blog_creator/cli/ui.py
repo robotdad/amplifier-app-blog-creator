@@ -10,7 +10,9 @@ logger = logging.getLogger(__name__)
 class CLIDisplay:
     """Handles all CLI output display."""
 
-    def show_banner(self: "CLIDisplay", session_dir: str, idea_name: str, writings_dir: str, instructions: str | None = None):
+    def show_banner(
+        self: "CLIDisplay", session_dir: str, idea_name: str, writings_dir: str, instructions: str | None = None
+    ):
         """Show startup banner.
 
         Args:

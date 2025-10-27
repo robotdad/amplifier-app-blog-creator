@@ -64,3 +64,9 @@ include = ["src", "tests"]
 exclude = [".venv", "__pycache__", "*.egg-info"]
 pythonVersion = "3.11"
 typeCheckingMode = "basic"
+
+[dependency-groups]
+dev = [
+    "pyright>=1.1.406",
+    "ruff>=0.14.1",
+]

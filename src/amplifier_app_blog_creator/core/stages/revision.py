@@ -1,6 +1,6 @@
 """Revision stage - wraps BlogWriter for draft revision."""
 
-from typing import Callable
+from collections.abc import Callable
 
 from ...blog_writer import BlogWriter
 from ..models import RevisionFeedback

@@ -169,6 +169,12 @@ dev = [
     { name = "ruff" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "pyright" },
+    { name = "ruff" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "amplifier-module-image-generation", git = "https://github.com/robotdad/amplifier-module-image-generation?branch=main" },
@@ -193,6 +199,12 @@ requires-dist = [
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.30.0" },
 ]
 provides-extras = ["dev"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "pyright", specifier = ">=1.1.406" },
+    { name = "ruff", specifier = ">=0.14.1" },
+]
 
 [[package]]
 name = "amplifier-module-image-generation"

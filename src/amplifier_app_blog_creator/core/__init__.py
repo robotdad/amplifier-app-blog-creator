@@ -1,7 +1,7 @@
 """Core business logic - pure, testable, no UI dependencies."""
 
-from .models import RevisionFeedback
 from .models import ReviewResult
+from .models import RevisionFeedback
 from .models import StyleProfile
 
 __all__ = [

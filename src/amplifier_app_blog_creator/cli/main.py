@@ -20,7 +20,9 @@ logger = logging.getLogger(__name__)
 
 
 @click.command()
-@click.option("--idea", type=click.Path(exists=True, path_type=Path), required=True, help="Path to idea/brain dump file")
+@click.option(
+    "--idea", type=click.Path(exists=True, path_type=Path), required=True, help="Path to idea/brain dump file"
+)
 @click.option(
     "--writings-dir",
     type=click.Path(exists=True, file_okay=False, path_type=Path),
@@ -80,7 +82,18 @@ def main(
 
     # Run workflow
     success = asyncio.run(
-        run_cli_workflow(workflow, display, input_handler, idea, writings_dir, instructions, output, with_images, max_images, image_style)
+        run_cli_workflow(
+            workflow,
+            display,
+            input_handler,
+            idea,
+            writings_dir,
+            instructions,
+            output,
+            with_images,
+            max_images,
+            image_style,
+        )
     )
 
     return 0 if success else 1
@@ -145,7 +158,10 @@ async def run_cli_workflow(
 
             # Get user feedback
             feedback = await input_handler.get_feedback(
-                workflow.session.state.current_draft, workflow.session.state.iteration, review.source_issues, review.style_issues
+                workflow.session.state.current_draft,
+                workflow.session.state.iteration,
+                review.source_issues,
+                review.style_issues,
             )
 
             if feedback.is_approved:
@@ -193,7 +209,10 @@ async def run_cli_workflow(
         # Completion
         workflow.session.mark_complete()
         display.show_completion(
-            str(output_path), str(workflow.session.session_dir), illustrated=with_images, illustrated_path=str(illustrated_path) if illustrated_path else None
+            str(output_path),
+            str(workflow.session.session_dir),
+            illustrated=with_images,
+            illustrated_path=str(illustrated_path) if illustrated_path else None,
         )
 
         return True

@@ -4,8 +4,8 @@ Analyzes content to identify specific illustration points, generates contextual 
 creates images, and inserts them at appropriate line numbers in the markdown.
 """
 
-import logging
 import asyncio
+import logging
 import os
 from pathlib import Path
 
@@ -16,7 +16,6 @@ from openai import OpenAI
 from .models import IllustrationPoint
 from .models import ImagePrompt
 from .utils.llm_parsing import parse_llm_json
-from .vendored_toolkit import ProgressReporter
 
 logger = logging.getLogger(__name__)
 
@@ -154,7 +153,7 @@ class IllustrationPhase:
                     context_before=context_before[:100],
                     context_after=context_after[:100],
                     importance="high",
-                    suggested_placement="after_intro"  # After heading,
+                    suggested_placement="after_intro",  # After heading,
                 )
             )
 
@@ -296,7 +295,7 @@ Return JSON with structure:
                     context_before=lines[max(0, line_num - 2)] if line_num > 0 else "",
                     context_after=lines[min(len(lines) - 1, line_num + 2)],
                     importance="medium",
-                    suggested_placement="after_intro"  # After heading,
+                    suggested_placement="after_intro",  # After heading,
                 )
             )
 
@@ -453,9 +452,9 @@ Return JSON with:
     ) -> dict[str, Path]:
         """Generate images in parallel for speed."""
         output_dir.mkdir(parents=True, exist_ok=True)
-        
+
         print(f"   Generating {len(prompts)} images in parallel...")
-        
+
         async def generate_one(prompt):
             try:
                 image_path = output_dir / f"{prompt.illustration_id}.png"
@@ -467,21 +466,20 @@ Return JSON with:
                 if result.success:
                     print(f"   ✓ {prompt.point.section_title}")
                     return (prompt.illustration_id, result.local_path)
-                else:
-                    print(f"   ✗ {prompt.illustration_id}: {result.error}")
-                    return None
+                print(f"   ✗ {prompt.illustration_id}: {result.error}")
+                return None
             except Exception as e:
                 print(f"   ✗ {prompt.illustration_id}: {e}")
                 return None
-        
+
         results = await asyncio.gather(*[generate_one(p) for p in prompts])
-        
+
         images = {}
         for result in results:
             if result:
                 ill_id, path = result
                 images[ill_id] = path
-        
+
         print(f"   ✓ {len(images)}/{len(prompts)} images generated")
         return images
 

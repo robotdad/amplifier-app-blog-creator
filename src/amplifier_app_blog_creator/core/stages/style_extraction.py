@@ -2,8 +2,8 @@
 
 import logging
 import os
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 
 from anthropic import AsyncAnthropic
 
@@ -13,9 +13,7 @@ from ..models import StyleProfile
 logger = logging.getLogger(__name__)
 
 
-async def extract_style(
-    writings_dir: Path, progress_callback: Callable[[str], None] | None = None
-) -> StyleProfile:
+async def extract_style(writings_dir: Path, progress_callback: Callable[[str], None] | None = None) -> StyleProfile:
     """Extract writing style from samples.
 
     Args:
@@ -129,8 +127,12 @@ common_phrases, writing_patterns, voice, examples"""
             "vocabulary_level": ensure_string(parsed.get("vocabulary_level"), "moderate"),
             "sentence_structure": ensure_string(parsed.get("sentence_structure"), "varied"),
             "paragraph_length": ensure_string(parsed.get("paragraph_length"), "medium"),
-            "common_phrases": parsed.get("common_phrases", []) if isinstance(parsed.get("common_phrases"), list) else [],
-            "writing_patterns": parsed.get("writing_patterns", []) if isinstance(parsed.get("writing_patterns"), list) else [],
+            "common_phrases": parsed.get("common_phrases", [])
+            if isinstance(parsed.get("common_phrases"), list)
+            else [],
+            "writing_patterns": parsed.get("writing_patterns", [])
+            if isinstance(parsed.get("writing_patterns"), list)
+            else [],
             "voice": ensure_string(parsed.get("voice"), "active"),
             "examples": parsed.get("examples", []) if isinstance(parsed.get("examples"), list) else [],
         }

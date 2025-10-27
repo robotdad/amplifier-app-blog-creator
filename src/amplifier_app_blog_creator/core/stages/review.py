@@ -1,6 +1,6 @@
 """Review stage - combines source and style reviewers."""
 
-from typing import Callable
+from collections.abc import Callable
 
 from ...reviewers.source_reviewer import SourceReviewer
 from ...reviewers.style_reviewer import StyleReviewer
@@ -34,7 +34,10 @@ async def review_draft(
 
     source_reviewer = SourceReviewer()
     source_review = await source_reviewer.review_sources(
-        draft, brain_dump, additional_instructions=additional_instructions, user_feedback_history=user_feedback_history or []
+        draft,
+        brain_dump,
+        additional_instructions=additional_instructions,
+        user_feedback_history=user_feedback_history or [],
     )
 
     if progress_callback:

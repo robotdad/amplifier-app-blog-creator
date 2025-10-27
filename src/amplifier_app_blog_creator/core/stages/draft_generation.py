@@ -1,6 +1,6 @@
 """Draft generation stage - wraps BlogWriter for initial draft."""
 
-from typing import Callable
+from collections.abc import Callable
 
 from ...blog_writer import BlogWriter
 from ..models import StyleProfile
@@ -27,7 +27,9 @@ async def generate_draft(
         progress_callback("Generating draft...")
 
     writer = BlogWriter()
-    draft = await writer.write_blog(brain_dump, style_profile.model_dump(), additional_instructions=additional_instructions)
+    draft = await writer.write_blog(
+        brain_dump, style_profile.model_dump(), additional_instructions=additional_instructions
+    )
 
     if progress_callback:
         progress_callback(f"Draft complete ({len(draft)} characters)")
