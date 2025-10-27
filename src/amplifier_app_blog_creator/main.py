@@ -6,7 +6,15 @@ from .cli.main import main as cli_main
 
 
 def main():
-    """Entry point dispatches to CLI."""
+    """Entry point - dispatch to CLI or web based on --mode flag."""
+    if "--mode" in sys.argv:
+        mode_idx = sys.argv.index("--mode")
+        if mode_idx + 1 < len(sys.argv):
+            mode = sys.argv[mode_idx + 1]
+            if mode == "web":
+                from .web.main import main as web_main
+                return web_main()
+
     return cli_main()
 
 
