@@ -23,7 +23,10 @@ Your browser opens with a polished interface:
 
 **Required API Keys:**
 - **ANTHROPIC_API_KEY** - For content generation ([Get key](https://console.anthropic.com/settings/keys))
-- **GOOGLE_API_KEY** - For image generation ([Get key](https://aistudio.google.com/app/apikey))
+- **OPENAI_API_KEY** or **GOOGLE_API_KEY** - For image generation
+  - OpenAI (DALL-E): [Get key](https://platform.openai.com/api-keys)
+  - Google (Imagen): [Get key](https://aistudio.google.com/app/apikey)
+  - Provide at least one; both can be configured for fallback
 
 Keys are stored in session only during web mode, never saved to disk.
 
