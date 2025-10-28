@@ -12,6 +12,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from .routes import configuration
 from .routes import content
+from .routes import illustrations
 from .routes import progress
 from .routes import sessions
 from .templates_config import templates
@@ -42,6 +43,7 @@ app.include_router(configuration.router)
 app.include_router(sessions.router)
 app.include_router(progress.router)
 app.include_router(content.router)
+app.include_router(illustrations.router)
 
 
 @app.get("/test")

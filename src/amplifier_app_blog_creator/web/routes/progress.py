@@ -25,12 +25,21 @@ class MessageQueue:
     def __init__(self):
         self.queue: asyncio.Queue = asyncio.Queue()
         self.complete = False
+        self.current_stage: str | None = None
+        self.current_stage_index: int = -1
 
-    async def put(self, message: str):
-        """Add message to queue."""
-        await self.queue.put(message)
+    async def put(self, message: str, stage: str | None = None, stage_index: int | None = None):
+        """Add message to queue with optional stage info."""
+        data: dict[str, str | int] = {"message": message}
+        if stage is not None:
+            data["stage"] = stage
+            self.current_stage = stage
+        if stage_index is not None:
+            data["stage_index"] = stage_index
+            self.current_stage_index = stage_index
+        await self.queue.put(data)
 
-    async def get(self) -> str:
+    async def get(self) -> dict[str, str | int]:
         """Get next message from queue."""
         return await self.queue.get()
 
@@ -72,8 +81,8 @@ async def progress_stream(session_id: str):
             while not queue.complete:
                 try:
                     # Wait for next message with timeout for keepalive
-                    message = await asyncio.wait_for(queue.get(), timeout=15.0)
-                    yield {"event": "message", "data": json.dumps({"message": message})}
+                    data = await asyncio.wait_for(queue.get(), timeout=15.0)
+                    yield {"event": "message", "data": json.dumps(data)}
                 except TimeoutError:
                     # Send keepalive
                     yield {"event": "ping", "data": ""}
@@ -100,6 +109,7 @@ async def run_workflow(session_id: str):
         # Get API key from session state (stored during configuration)
         # Core stages read from environment, so set it here
         import os
+
         api_key = session_mgr.state.api_key or os.getenv("ANTHROPIC_API_KEY")
 
         if not api_key:
@@ -133,15 +143,15 @@ async def run_workflow(session_id: str):
         additional_instructions = session_mgr.state.additional_instructions
 
         # Stage 1: Style Extraction
-        await queue.put("Extracting writing style...")
+        await queue.put("Extracting writing style...", stage="style_extraction", stage_index=0)
         await workflow.run_style_extraction(writings_dir)
 
         # Stage 2: Draft Generation
-        await queue.put("Generating initial draft...")
+        await queue.put("Generating initial draft...", stage="draft_generation", stage_index=1)
         await workflow.run_draft_generation(brain_dump, additional_instructions)
 
         # Stage 3: Review (first pass - like CLI iteration 1)
-        await queue.put("Reviewing draft...")
+        await queue.put("Reviewing draft...", stage="review", stage_index=2)
         review_result = await workflow.run_review()
 
         # Stage 4: Auto-revision if issues found (match CLI's first-pass behavior)
@@ -151,19 +161,17 @@ async def run_workflow(session_id: str):
                 await queue.put("Error: Maximum iterations reached")
                 return
 
-            await queue.put("Revising based on review feedback...")
+            await queue.put("Revising based on review feedback...", stage="revision", stage_index=3)
             feedback = RevisionFeedback(
-                action="revise",
-                source_issues=review_result.source_issues,
-                style_issues=review_result.style_issues
+                action="revise", source_issues=review_result.source_issues, style_issues=review_result.style_issues
             )
             await workflow.run_revision(feedback)
 
             # Review again after revision
-            await queue.put("Final review...")
+            await queue.put("Final review...", stage="revision", stage_index=3)
             await workflow.run_review()
 
-        await queue.put("Workflow complete!")
+        await queue.put("Workflow complete!", stage="complete", stage_index=4)
 
     except Exception as e:
         logger.error(f"Workflow error: {e}", exc_info=True)

@@ -32,6 +32,7 @@ async def get_recent_paths():
                 if state_file.exists():
                     try:
                         import json
+
                         state = json.loads(state_file.read_text())
                         if state.get("idea_path"):
                             recent_ideas.append(state["idea_path"])
@@ -65,6 +66,7 @@ async def new_session(request: Request):
     """Create new session and show setup page."""
     # Ensure API key is configured before allowing workflow
     from .configuration import is_configured
+
     if not is_configured(request):
         return RedirectResponse(url="/configure", status_code=302)
 
@@ -215,24 +217,16 @@ async def start_workflow(
 
     # Validate paths exist before starting workflow
     if not idea_path_abs.exists():
-        return HTMLResponse(
-            f'<div class="error">Idea file not found: {idea_path_abs}</div>',
-            status_code=400
-        )
+        return HTMLResponse(f'<div class="error">Idea file not found: {idea_path_abs}</div>', status_code=400)
     if not idea_path_abs.is_file():
-        return HTMLResponse(
-            f'<div class="error">Idea path is not a file: {idea_path_abs}</div>',
-            status_code=400
-        )
+        return HTMLResponse(f'<div class="error">Idea path is not a file: {idea_path_abs}</div>', status_code=400)
     if not writings_dir_abs.exists():
         return HTMLResponse(
-            f'<div class="error">Writings directory not found: {writings_dir_abs}</div>',
-            status_code=400
+            f'<div class="error">Writings directory not found: {writings_dir_abs}</div>', status_code=400
         )
     if not writings_dir_abs.is_dir():
         return HTMLResponse(
-            f'<div class="error">Writings path is not a directory: {writings_dir_abs}</div>',
-            status_code=400
+            f'<div class="error">Writings path is not a directory: {writings_dir_abs}</div>', status_code=400
         )
 
     session_mgr.state.idea_path = str(idea_path_abs)
@@ -241,6 +235,7 @@ async def start_workflow(
     # Transfer API key from HTTP session to SessionManager state
     # (Core stages read from environment, which will be set from session state)
     from .configuration import get_api_key
+
     api_key = get_api_key(request)
     if api_key:
         session_mgr.state.api_key = api_key

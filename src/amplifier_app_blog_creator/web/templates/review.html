@@ -22,6 +22,66 @@
             <div id="preview-content" class="markdown-preview"></div>
         </div>
     </div>
+
+    <!-- Illustrations Section (Collapsible) -->
+    <div class="illustrations-section">
+        <button class="section-toggle" id="illustrations-toggle">
+            <span class="section-icon">🎨</span>
+            <span class="section-title">Add Illustrations (Optional)</span>
+            <span class="section-status" id="illustrations-status">Not generated</span>
+            <span class="toggle-icon" id="toggle-icon">▼</span>
+        </button>
+
+        <div class="section-content" id="illustrations-content" style="display: none;">
+            <!-- Configuration Form -->
+            <div id="config-form" class="config-panel">
+                <div class="form-group">
+                    <label for="image-style">Image Style (optional)</label>
+                    <input
+                        type="text"
+                        id="image-style"
+                        placeholder="e.g., minimalist diagrams, vibrant illustrations"
+                        class="form-input"
+                    />
+                    <p class="form-help">Describe the visual style you'd like</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="image-count">Number of Images</label>
+                    <select id="image-count" class="form-select">
+                        <option value="1">1 image</option>
+                        <option value="2">2 images</option>
+                        <option value="3" selected>3 images</option>
+                        <option value="4">4 images</option>
+                        <option value="5">5 images</option>
+                    </select>
+                </div>
+
+                <button id="generate-btn" class="btn btn-primary btn-full">
+                    Generate Illustrations →
+                </button>
+            </div>
+
+            <!-- Progress Cards (shown during generation) -->
+            <div id="progress-cards" class="progress-cards" style="display: none;">
+                <!-- Cards will be dynamically added here -->
+            </div>
+
+            <!-- Image Gallery (shown after completion) -->
+            <div id="image-gallery" class="image-gallery" style="display: none;">
+                <div class="gallery-header">
+                    <h4>📸 Generated Images</h4>
+                    <span id="gallery-count" class="gallery-count">0 images</span>
+                </div>
+
+                <div class="gallery-grid" id="gallery-grid"></div>
+
+                <button id="regenerate-btn" class="btn btn-secondary btn-full">
+                    Regenerate Illustrations
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Review Drawer -->
@@ -162,6 +222,14 @@
     overflow-x: auto;
 }
 
+.markdown-preview img {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius-md);
+    margin: var(--space-md) 0;
+    box-shadow: var(--shadow-card);
+}
+
 /* Review Drawer */
 .review-drawer {
     position: fixed;
@@ -268,6 +336,256 @@
 .drawer-actions .btn {
     width: 100%;
 }
+
+/* Illustrations Section */
+.illustrations-section {
+    margin-top: var(--space-xl);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-secondary);
+    overflow: hidden;
+}
+
+.section-toggle {
+    width: 100%;
+    padding: var(--space-lg);
+    background: none;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    cursor: pointer;
+    transition: background var(--duration-quick) var(--easing-standard);
+}
+
+.section-toggle:hover {
+    background: var(--color-bg-tertiary);
+}
+
+.section-icon {
+    font-size: var(--text-2xl);
+}
+
+.section-title {
+    flex: 1;
+    text-align: left;
+    font-size: var(--text-lg);
+    font-weight: var(--weight-semibold);
+    color: var(--color-text-primary);
+}
+
+.section-status {
+    font-size: var(--text-sm);
+    color: var(--color-text-tertiary);
+    font-weight: var(--weight-normal);
+}
+
+.toggle-icon {
+    font-size: var(--text-xl);
+    color: var(--color-text-secondary);
+    transition: transform var(--duration-quick) var(--easing-standard);
+}
+
+.section-toggle.expanded .toggle-icon {
+    transform: rotate(180deg);
+}
+
+.section-content {
+    border-top: 1px solid var(--color-border);
+    padding: var(--space-lg);
+}
+
+/* Config Panel */
+.config-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+.form-group label {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--color-text-primary);
+}
+
+.form-input,
+.form-select {
+    padding: var(--space-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: var(--text-base);
+    background: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    transition: all var(--duration-quick) var(--easing-standard);
+}
+
+.form-input:focus,
+.form-select:focus {
+    outline: none;
+    border-color: var(--color-accent-primary);
+    box-shadow: 0 0 0 3px rgba(212, 148, 59, 0.15);
+}
+
+.form-help {
+    font-size: var(--text-sm);
+    color: var(--color-text-tertiary);
+    font-style: italic;
+    margin: 0;
+}
+
+.btn-full {
+    width: 100%;
+}
+
+/* Progress Cards */
+.progress-cards {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.illust-card {
+    background: var(--color-bg-primary);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    transition: all var(--duration-standard) var(--easing-spring);
+}
+
+.illust-card--active {
+    border-color: var(--color-accent-primary);
+    box-shadow: 0 0 0 3px rgba(212, 148, 59, 0.15);
+}
+
+.illust-card--completed {
+    opacity: 0.7;
+    border-color: var(--color-success);
+}
+
+.illust-card__header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.illust-card__icon {
+    font-size: var(--text-2xl);
+}
+
+.illust-card--active .illust-card__icon {
+    color: var(--color-accent-primary);
+    animation: spin 2s linear infinite;
+}
+
+.illust-card--completed .illust-card__icon {
+    color: var(--color-success);
+}
+
+.illust-card__title {
+    font-size: var(--text-base);
+    font-weight: var(--weight-semibold);
+    color: var(--color-text-primary);
+    margin: 0;
+}
+
+.illust-card__message {
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    margin-top: var(--space-xs);
+}
+
+/* Image Gallery */
+.image-gallery {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.gallery-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.gallery-header h4 {
+    font-size: var(--text-lg);
+    font-weight: var(--weight-semibold);
+    color: var(--color-text-primary);
+    margin: 0;
+}
+
+.gallery-count {
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+}
+
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--space-md);
+}
+
+.gallery-item {
+    background: var(--color-bg-primary);
+    border-radius: var(--radius-md);
+    padding: var(--space-sm);
+    border: 1px solid var(--color-border);
+    cursor: pointer;
+    transition: all var(--duration-quick) var(--easing-standard);
+}
+
+.gallery-item:hover {
+    border-color: var(--color-accent-primary);
+    box-shadow: var(--shadow-card);
+}
+
+.gallery-item img {
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-xs);
+}
+
+.gallery-item-path {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--color-accent-primary);
+    margin-bottom: var(--space-xs);
+    word-break: break-all;
+}
+
+.gallery-item-actions {
+    display: flex;
+    gap: var(--space-xs);
+}
+
+.gallery-item-btn {
+    flex: 1;
+    padding: var(--space-xs);
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-xs);
+    cursor: pointer;
+    transition: all var(--duration-quick) var(--easing-standard);
+}
+
+.gallery-item-btn:hover {
+    background: var(--color-accent-primary);
+    color: white;
+    border-color: var(--color-accent-primary);
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
 </style>
 
 <script>
@@ -280,7 +598,7 @@ async function renderPreview() {
     const formData = new FormData();
     formData.append('content', content);
 
-    const response = await fetch('/sessions/render-markdown', {
+    const response = await fetch(`/sessions/${sessionId}/render-markdown`, {
         method: 'POST',
         body: formData
     });
@@ -331,14 +649,18 @@ document.getElementById('start-over-btn').addEventListener('click', () => {
     window.location.href = '/sessions/new';
 });
 
-// Approve button
+// Approve button - now goes to complete page
 document.getElementById('approve-btn').addEventListener('click', async () => {
-    const response = await fetch(`/sessions/${sessionId}/approve`, {
-        method: 'POST'
+    // Save current draft before finalizing
+    const content = document.getElementById('markdown-editor').value;
+    await fetch(`/sessions/${sessionId}/draft`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content })
     });
 
-    const data = await response.json();
-    window.location.href = data.redirect;
+    // Redirect to complete page
+    window.location.href = `/sessions/${sessionId}/complete`;
 });
 
 // Review drawer
@@ -389,14 +711,286 @@ document.getElementById('review-toggle').addEventListener('click', () => {
 document.getElementById('drawer-close').addEventListener('click', closeDrawer);
 overlay.addEventListener('click', closeDrawer);
 
-// Regenerate (placeholder for future iteration)
+// Regenerate review (future feature - for now just close drawer)
 document.getElementById('regenerate-btn').addEventListener('click', () => {
-    alert('Regeneration will trigger a new review iteration in future versions');
     closeDrawer();
 });
 
 // Initialize page - load review data and render initial preview
 loadReviewData();
 renderPreview();  // Show preview on load since we default to preview mode
+
+// ===== ILLUSTRATIONS SECTION =====
+
+let illustrationEventSource = null;
+let generatedImages = [];
+
+// Toggle illustrations section
+document.getElementById('illustrations-toggle').addEventListener('click', () => {
+    const content = document.getElementById('illustrations-content');
+    const toggle = document.getElementById('illustrations-toggle');
+    const icon = document.getElementById('toggle-icon');
+
+    if (content.style.display === 'none') {
+        content.style.display = 'block';
+        toggle.classList.add('expanded');
+        icon.textContent = '▲';
+    } else {
+        content.style.display = 'none';
+        toggle.classList.remove('expanded');
+        icon.textContent = '▼';
+    }
+});
+
+// Generate illustrations
+document.getElementById('generate-btn').addEventListener('click', async () => {
+    const imageStyle = document.getElementById('image-style').value;
+    const maxImages = parseInt(document.getElementById('image-count').value);
+
+    // Hide config, show progress cards
+    document.getElementById('config-form').style.display = 'none';
+    document.getElementById('progress-cards').style.display = 'block';
+
+    // Create initial progress cards (4 stages + N images)
+    createProgressCards(maxImages);
+
+    // Start SSE for illustration generation
+    startIllustrationGeneration(imageStyle, maxImages);
+});
+
+// Create progress cards for illustration phases
+function createProgressCards(maxImages) {
+    const container = document.getElementById('progress-cards');
+    container.innerHTML = '';
+
+    // Stage 1: Analyze content
+    container.appendChild(createIllustCard('analyze', 'Analyzing Content', 'pending'));
+
+    // Stage 2: Generate prompts
+    container.appendChild(createIllustCard('prompts', 'Generating Prompts', 'pending'));
+
+    // Stage 3-N: Generate images (parallel)
+    for (let i = 0; i < maxImages; i++) {
+        container.appendChild(createIllustCard(`image-${i}`, `Image ${i + 1}`, 'pending'));
+    }
+
+    // Stage Final: Insert into markdown
+    container.appendChild(createIllustCard('insert', 'Inserting into Markdown', 'pending'));
+}
+
+// Create single illustration progress card
+function createIllustCard(id, title, status) {
+    const card = document.createElement('div');
+    card.id = `illust-card-${id}`;
+    card.className = `illust-card illust-card--${status}`;
+
+    const icon = status === 'completed' ? '✓' : (status === 'active' ? '⟳' : '○');
+
+    card.innerHTML = `
+        <div class="illust-card__header">
+            <div class="illust-card__icon">${icon}</div>
+            <h4 class="illust-card__title">${title}</h4>
+        </div>
+        <div class="illust-card__message"></div>
+    `;
+
+    return card;
+}
+
+// Update illustration card status
+function updateIllustCard(id, status, message) {
+    const card = document.getElementById(`illust-card-${id}`);
+    if (!card) return;
+
+    card.className = `illust-card illust-card--${status}`;
+
+    const icon = card.querySelector('.illust-card__icon');
+    icon.textContent = status === 'completed' ? '✓' : (status === 'active' ? '⟳' : '○');
+
+    if (message) {
+        const messageEl = card.querySelector('.illust-card__message');
+        messageEl.textContent = message;
+    }
+}
+
+// Start illustration generation with SSE
+function startIllustrationGeneration(imageStyle, maxImages) {
+    const url = `/sessions/${sessionId}/illustrations-stream?style=${encodeURIComponent(imageStyle)}&max_images=${maxImages}`;
+    illustrationEventSource = new EventSource(url);
+
+    illustrationEventSource.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+        console.log('Illustration SSE:', data); // Debug log
+
+        // Route message to appropriate card based on stage
+        if (data.stage === 'analyze') {
+            updateIllustCard('analyze', 'active', data.message);
+        } else if (data.stage === 'prompts') {
+            updateIllustCard('analyze', 'completed', 'Completed');
+            updateIllustCard('prompts', 'active', data.message);
+        } else if (data.stage && data.stage.startsWith('image-')) {
+            updateIllustCard('prompts', 'completed', 'Completed');
+            // Update the specific image card
+            updateIllustCard(data.stage, 'active', data.message);
+        } else if (data.stage === 'insert') {
+            // Mark all image cards as completed
+            const maxImages = parseInt(document.getElementById('image-count').value);
+            for (let i = 0; i < maxImages; i++) {
+                updateIllustCard(`image-${i}`, 'completed', 'Completed');
+            }
+            updateIllustCard('insert', 'active', data.message);
+        }
+
+        // Fallback: if no stage specified, log for debugging
+        if (!data.stage) {
+            console.warn('SSE message without stage:', data);
+        }
+    };
+
+    illustrationEventSource.addEventListener('image-ready', function(event) {
+        const data = JSON.parse(event.data);
+        console.log('Image ready:', data); // Debug log
+
+        // Add to generated images list
+        generatedImages.push(data);
+
+        // Extract index from image path if available
+        if (data.image_path) {
+            const match = data.image_path.match(/illustration-(\d+)/);
+            if (match) {
+                const generatedIndex = parseInt(match[1]) - 1;
+                console.log('Marking image card completed:', generatedIndex);
+            }
+        }
+
+        // Refresh preview to show new image
+        renderPreview();
+    });
+
+    illustrationEventSource.addEventListener('complete', function(event) {
+        illustrationEventSource.close();
+
+        // Mark insert as completed
+        updateIllustCard('insert', 'completed', 'Completed');
+
+        // Reload draft to show inserted images
+        reloadDraft();
+
+        // Update status and show gallery
+        setTimeout(async () => {
+            await loadImageGallery();
+            const imageCount = generatedImages.length;
+            document.getElementById('illustrations-status').textContent = `${imageCount} image${imageCount !== 1 ? 's' : ''} generated`;
+
+            // Hide progress, show gallery
+            document.getElementById('progress-cards').style.display = 'none';
+            document.getElementById('image-gallery').style.display = 'block';
+        }, 800);
+    });
+
+    illustrationEventSource.onerror = function(error) {
+        console.error('Illustration SSE Error:', error);
+        illustrationEventSource.close();
+    };
+}
+
+// Load image gallery
+async function loadImageGallery() {
+    const response = await fetch(`/sessions/${sessionId}/images`);
+    const data = await response.json();
+
+    const images = data.images || [];
+    generatedImages = images;
+
+    // Update count
+    document.getElementById('gallery-count').textContent = `${images.length} image${images.length !== 1 ? 's' : ''}`;
+
+    // Build gallery grid
+    const grid = document.getElementById('gallery-grid');
+    grid.innerHTML = images.map((img, index) => `
+        <div class="gallery-item">
+            <img src="/sessions/${sessionId}/images/${img.filename}" alt="Illustration ${index + 1}">
+            <div class="gallery-item-path">images/${img.filename}</div>
+            <div class="gallery-item-actions">
+                <button class="gallery-item-btn" onclick="copyImagePath('images/${img.filename}')">
+                    Copy
+                </button>
+                <button class="gallery-item-btn" onclick="insertImage('images/${img.filename}', 'Illustration')">
+                    Insert
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Copy image path to clipboard
+async function copyImagePath(path) {
+    await navigator.clipboard.writeText(path);
+
+    // Visual feedback (simple for now)
+    console.log('Copied:', path);
+}
+
+// Insert image at cursor
+function insertImage(path, caption) {
+    const editor = document.getElementById('markdown-editor');
+    const markdown = `![${caption}](${path})`;
+
+    const start = editor.selectionStart;
+    const end = editor.selectionEnd;
+    const text = editor.value;
+
+    // Insert at cursor
+    editor.value = text.substring(0, start) + markdown + text.substring(end);
+
+    // Move cursor after inserted text
+    editor.selectionStart = editor.selectionEnd = start + markdown.length;
+
+    // Focus editor and trigger auto-save
+    editor.focus();
+    editor.dispatchEvent(new Event('input'));
+}
+
+// Regenerate button - show config form to change settings
+document.getElementById('regenerate-btn')?.addEventListener('click', () => {
+    // Hide gallery, show config form so user can adjust settings
+    document.getElementById('image-gallery').style.display = 'none';
+    document.getElementById('config-form').style.display = 'block';
+});
+
+// Reload draft from server (after illustrations inserted)
+async function reloadDraft() {
+    const response = await fetch(`/sessions/${sessionId}/draft`);
+    const data = await response.json();
+
+    // Update editor
+    document.getElementById('markdown-editor').value = data.content;
+
+    // Update preview
+    await renderPreview();
+}
+
+// Initialize - check for existing images
+async function initIllustrations() {
+    const response = await fetch(`/sessions/${sessionId}/images`);
+    const data = await response.json();
+
+    if (data.images && data.images.length > 0) {
+        generatedImages = data.images;
+        document.getElementById('illustrations-status').textContent = `${data.images.length} image${data.images.length !== 1 ? 's' : ''} generated`;
+
+        // Auto-expand section if images exist
+        document.getElementById('illustrations-content').style.display = 'block';
+        document.getElementById('illustrations-toggle').classList.add('expanded');
+        document.getElementById('toggle-icon').textContent = '▲';
+
+        // Show gallery directly
+        document.getElementById('config-form').style.display = 'none';
+        loadImageGallery();
+        document.getElementById('image-gallery').style.display = 'block';
+    }
+}
+
+initIllustrations();
 </script>
 {% endblock %}

@@ -9,105 +9,261 @@
         <p class="progress-subtitle">Please wait while we craft your content...</p>
     </div>
 
-    <div class="progress-stage-card">
-        <div class="stage-icon">⟳</div>
-        <div class="stage-content">
-            <h2 class="stage-title">Processing</h2>
-            <div id="progress-message" class="stage-message">Initializing...</div>
+    <!-- All stage cards -->
+    <div class="stage-cards">
+        <div class="stage-card stage-card--pending" id="stage-card-0" data-stage="style_extraction">
+            <div class="stage-card__header">
+                <div class="stage-card__icon">○</div>
+                <div class="stage-card__content">
+                    <h3 class="stage-card__title">Stage 1: Style Extraction</h3>
+                    <p class="stage-card__subtitle">Analyzing your writing samples</p>
+                </div>
+            </div>
         </div>
-    </div>
 
-    <div class="progress-log">
-        <h3>Progress Log</h3>
-        <div id="progress-log-content" class="log-content"></div>
+        <div class="stage-card stage-card--pending" id="stage-card-1" data-stage="draft_generation">
+            <div class="stage-card__header">
+                <div class="stage-card__icon">○</div>
+                <div class="stage-card__content">
+                    <h3 class="stage-card__title">Stage 2: Draft Generation</h3>
+                    <p class="stage-card__subtitle">Creating your post</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="stage-card stage-card--pending" id="stage-card-2" data-stage="review">
+            <div class="stage-card__header">
+                <div class="stage-card__icon">○</div>
+                <div class="stage-card__content">
+                    <h3 class="stage-card__title">Stage 3: Review</h3>
+                    <p class="stage-card__subtitle">Checking accuracy and style</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="stage-card stage-card--pending" id="stage-card-3" data-stage="revision">
+            <div class="stage-card__header">
+                <div class="stage-card__icon">○</div>
+                <div class="stage-card__content">
+                    <h3 class="stage-card__title">Stage 4: Revision</h3>
+                    <p class="stage-card__subtitle">Refining based on review</p>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
 <style>
 .progress-container {
-    max-width: 800px;
+    max-width: 900px;
     margin: 2rem auto;
-    padding: 0 1rem;
+    padding: 0 var(--space-md);
 }
 
 .progress-header {
     text-align: center;
-    margin-bottom: 2rem;
+    margin-bottom: var(--space-xl);
 }
 
 .progress-header h1 {
-    font-size: 2rem;
+    font-size: var(--text-3xl);
     color: var(--color-text-primary);
-    margin-bottom: 0.5rem;
+    margin-bottom: var(--space-xs);
+    font-weight: var(--weight-semibold);
 }
 
 .progress-subtitle {
     color: var(--color-text-secondary);
-    font-size: 1.125rem;
+    font-size: var(--text-lg);
 }
 
-.progress-stage-card {
-    background: var(--color-bg-secondary);
-    border-radius: 10px;
-    padding: 2rem;
-    box-shadow: var(--shadow-card);
+.stage-cards {
     display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    margin-bottom: 2rem;
+    flex-direction: column;
+    gap: var(--space-md);
 }
 
-.stage-icon {
-    font-size: 3rem;
+/* Stage Card Base Styles */
+.stage-card {
+    background: var(--color-bg-secondary);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    box-shadow: var(--shadow-card);
+    transition: all var(--duration-standard) var(--easing-spring);
+}
+
+.stage-card__header {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-md);
+}
+
+.stage-card__icon {
+    font-size: 2.5rem;
+    line-height: 1;
+    flex-shrink: 0;
+    transition: all var(--duration-standard) var(--easing-spring);
+}
+
+.stage-card__content {
+    flex: 1;
+    min-width: 0;
+}
+
+.stage-card__title {
+    font-size: var(--text-xl);
+    font-weight: var(--weight-semibold);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-xs) 0;
+}
+
+.stage-card__subtitle {
+    font-size: var(--text-base);
+    color: var(--color-text-secondary);
+    margin: 0;
+}
+
+/* Stage Card States */
+.stage-card--pending {
+    opacity: 0.5;
+}
+
+.stage-card--pending .stage-card__icon {
+    color: var(--color-text-tertiary);
+}
+
+.stage-card--active {
+    border-color: var(--color-accent-primary);
+    box-shadow: var(--shadow-card),
+                0 0 0 3px rgba(212, 148, 59, 0.15);
+    opacity: 1;
+}
+
+.stage-card--active .stage-card__icon {
+    color: var(--color-accent-primary);
     animation: spin 2s linear infinite;
 }
 
+.stage-card--completed {
+    opacity: 0.85;
+    border-color: var(--color-success);
+    padding: var(--space-md) var(--space-lg);
+}
+
+.stage-card--completed .stage-card__icon {
+    color: var(--color-success);
+    font-size: 1.5rem;
+}
+
+.stage-card--completed .stage-card__title {
+    font-size: var(--text-base);
+}
+
+.stage-card--completed .stage-card__subtitle {
+    font-size: var(--text-sm);
+}
+
+/* Hide progress bar and messages in completed cards */
+.stage-card--completed .stage-card__progress,
+.stage-card--completed .stage-card__messages {
+    display: none;
+}
+
+/* Progress Bar */
+.stage-card__progress {
+    margin-top: var(--space-md);
+    height: 8px;
+    background: var(--color-bg-tertiary);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-bar__fill {
+    height: 100%;
+    background: var(--color-accent-primary);
+    border-radius: var(--radius-sm);
+    transition: width var(--duration-standard) var(--easing-standard);
+}
+
+.progress-bar__shimmer {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.3),
+        transparent
+    );
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    to { left: 100%; }
+}
+
+/* Live Messages */
+.stage-card__messages {
+    margin-top: var(--space-md);
+    padding: var(--space-md);
+    background: var(--color-bg-tertiary);
+    border-radius: var(--radius-sm);
+    border-left: 3px solid var(--color-accent-primary);
+}
+
+.stage-card__messages h4 {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-xs) 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.stage-card__messages-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+.message-entry {
+    color: var(--color-text-secondary);
+    font-size: var(--text-sm);
+    line-height: var(--leading-normal);
+    padding-left: var(--space-sm);
+    animation: slideIn 300ms ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Spin animation for active stage */
 @keyframes spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
 }
 
-.stage-content {
-    flex: 1;
-}
-
-.stage-title {
-    font-size: 1.5rem;
-    color: var(--color-text-primary);
-    margin-bottom: 0.5rem;
-}
-
-.stage-message {
-    color: var(--color-text-secondary);
-    font-size: 1rem;
-}
-
-.progress-log {
-    background: var(--color-bg-secondary);
-    border-radius: 10px;
-    padding: 1.5rem;
-    box-shadow: var(--shadow-card);
-}
-
-.progress-log h3 {
-    font-size: 1.25rem;
-    color: var(--color-text-primary);
-    margin-bottom: 1rem;
-}
-
-.log-content {
-    font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
-    font-size: 0.875rem;
-    color: var(--color-text-secondary);
-    background: var(--color-bg-tertiary);
-    padding: 1rem;
-    border-radius: 6px;
-    max-height: 400px;
-    overflow-y: auto;
-}
-
-.log-entry {
-    padding: 0.25rem 0;
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .stage-card,
+    .stage-card__icon,
+    .progress-bar__fill,
+    .message-entry {
+        animation: none;
+        transition: none;
+    }
 }
 </style>
 
@@ -115,35 +271,201 @@
 const sessionId = "{{ session_id }}";
 const eventSource = new EventSource(`/sessions/${sessionId}/progress-stream`);
 
+// Stage metadata
+const stages = [
+    { id: 'style_extraction', name: 'Stage 1: Style Extraction', subtitle: 'Analyzing your writing samples' },
+    { id: 'draft_generation', name: 'Stage 2: Draft Generation', subtitle: 'Creating your post' },
+    { id: 'review', name: 'Stage 3: Review', subtitle: 'Checking accuracy and style' },
+    { id: 'revision', name: 'Stage 4: Revision', subtitle: 'Refining based on review' }
+];
+
+// State tracking
+let currentStageIndex = -1;
+let progressPercent = 0;
+
+// Get icon for status
+function getIconForStatus(status) {
+    switch (status) {
+        case 'completed': return '✓';
+        case 'active': return '⟳';
+        default: return '○';
+    }
+}
+
+// Update stage card
+function updateStageCard(stageIndex, status, subtitle, progress) {
+    const card = document.getElementById(`stage-card-${stageIndex}`);
+    if (!card) return;
+
+    // Update classes
+    card.className = `stage-card stage-card--${status}`;
+
+    // Update icon
+    const icon = card.querySelector('.stage-card__icon');
+    icon.textContent = getIconForStatus(status);
+
+    // Update subtitle if provided
+    if (subtitle) {
+        const subtitleEl = card.querySelector('.stage-card__subtitle');
+        subtitleEl.textContent = subtitle;
+    }
+
+    // Add/update progress bar for active stage
+    if (status === 'active') {
+        let progressBar = card.querySelector('.stage-card__progress');
+        if (!progressBar) {
+            progressBar = document.createElement('div');
+            progressBar.className = 'stage-card__progress';
+            progressBar.innerHTML = `
+                <div class="progress-bar__fill" style="width: 0%"></div>
+                <div class="progress-bar__shimmer"></div>
+            `;
+            card.querySelector('.stage-card__header').after(progressBar);
+        }
+
+        if (progress !== undefined) {
+            const fill = progressBar.querySelector('.progress-bar__fill');
+            fill.style.width = `${progress}%`;
+        }
+
+        // Add messages container if not exists
+        let messagesContainer = card.querySelector('.stage-card__messages');
+        if (!messagesContainer) {
+            messagesContainer = document.createElement('div');
+            messagesContainer.className = 'stage-card__messages';
+            messagesContainer.innerHTML = `
+                <h4>Live Messages:</h4>
+                <div class="stage-card__messages-list"></div>
+            `;
+            card.appendChild(messagesContainer);
+        }
+    }
+
+    // When completed, remove progress bar and messages (CSS hides them, but clean up DOM)
+    if (status === 'completed') {
+        const progressBar = card.querySelector('.stage-card__progress');
+        const messagesContainer = card.querySelector('.stage-card__messages');
+        // Don't remove, let CSS hide them for smooth transition
+    }
+}
+
+// Add message to active stage
+function addMessage(message) {
+    if (currentStageIndex < 0) return;
+
+    const card = document.getElementById(`stage-card-${currentStageIndex}`);
+    if (!card) return;
+
+    const messagesList = card.querySelector('.stage-card__messages-list');
+    if (!messagesList) return;
+
+    const entry = document.createElement('div');
+    entry.className = 'message-entry';
+    entry.textContent = `• ${message}`;
+    messagesList.appendChild(entry);
+
+    // Keep only last 5 messages
+    while (messagesList.children.length > 5) {
+        messagesList.removeChild(messagesList.firstChild);
+    }
+
+    // Scroll card into view if needed
+    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// Set active stage
+function setActiveStage(stageIndex) {
+    // Mark previous stages as completed
+    for (let i = 0; i < stageIndex; i++) {
+        updateStageCard(i, 'completed', undefined, undefined);
+    }
+
+    // Mark current stage as active
+    currentStageIndex = stageIndex;
+    updateStageCard(stageIndex, 'active', undefined, 0);
+
+    // Keep future stages as pending
+    for (let i = stageIndex + 1; i < stages.length; i++) {
+        updateStageCard(i, 'pending', undefined, undefined);
+    }
+}
+
+// Process SSE message
 eventSource.onmessage = function(event) {
     const data = JSON.parse(event.data);
     const message = data.message;
 
-    // Update current message
-    document.getElementById('progress-message').textContent = message;
+    // Detect stage transitions based on message content
+    if (message.includes('Extracting writing style') || message.includes('Starting workflow')) {
+        setActiveStage(0);
+        progressPercent = 0;
+    } else if (message.includes('Generating initial draft') || message.includes('Generating draft')) {
+        // Mark style extraction as completed
+        if (currentStageIndex === 0) {
+            updateStageCard(0, 'completed', 'Completed', undefined);
+        }
+        setActiveStage(1);
+        progressPercent = 0;
+    } else if (message.includes('Reviewing draft') && !message.includes('Final review')) {
+        // First review - mark draft generation as completed
+        if (currentStageIndex === 1) {
+            updateStageCard(1, 'completed', 'Completed', undefined);
+        }
+        setActiveStage(2);
+        progressPercent = 0;
+    } else if (message.includes('Revising')) {
+        // Revision stage - mark review as completed
+        if (currentStageIndex === 2) {
+            updateStageCard(2, 'completed', 'Completed', undefined);
+        }
+        setActiveStage(3);
+        progressPercent = 0;
+    } else if (message.includes('Final review')) {
+        // Going back to review after revision - reactivate review stage
+        updateStageCard(2, 'active', 'Re-reviewing after revision', undefined);
+        currentStageIndex = 2;
+        progressPercent = 0;
 
-    // Add to log
-    const logContent = document.getElementById('progress-log-content');
-    const entry = document.createElement('div');
-    entry.className = 'log-entry';
-    entry.textContent = `• ${message}`;
-    logContent.appendChild(entry);
+        // Mark revision as completed (it did its job)
+        updateStageCard(3, 'completed', 'Completed', undefined);
+    }
 
-    // Scroll to bottom
-    logContent.scrollTop = logContent.scrollHeight;
+    // Add message to active stage
+    addMessage(message);
+
+    // Update progress (rough estimate based on messages)
+    if (currentStageIndex >= 0) {
+        // Increment progress slightly with each message
+        progressPercent = Math.min(progressPercent + 15, 95);
+        const card = document.getElementById(`stage-card-${currentStageIndex}`);
+        const fill = card?.querySelector('.progress-bar__fill');
+        if (fill) {
+            fill.style.width = `${progressPercent}%`;
+        }
+    }
 };
 
 eventSource.addEventListener('complete', function(event) {
     const data = JSON.parse(event.data);
     eventSource.close();
 
-    // Redirect to review page
-    window.location.href = data.redirect;
+    // Mark all stages as completed
+    for (let i = 0; i < stages.length; i++) {
+        updateStageCard(i, 'completed', 'Completed', undefined);
+    }
+
+    // Brief delay for visual effect, then redirect
+    setTimeout(() => {
+        window.location.href = data.redirect;
+    }, 800);
 });
 
 eventSource.onerror = function(error) {
     console.error('SSE Error:', error);
-    document.getElementById('progress-message').textContent = 'Connection error - please refresh';
+    // Show error in active stage if any
+    if (currentStageIndex >= 0) {
+        addMessage('⚠ Connection error - please refresh the page');
+    }
 };
 </script>
 {% endblock %}

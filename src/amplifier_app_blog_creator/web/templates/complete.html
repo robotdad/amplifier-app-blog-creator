@@ -28,38 +28,77 @@
             </div>
         </div>
 
+        <div class="files-section">
+            <h3>📄 Content & Files</h3>
+            <div class="file-tree">
+                <div class="file-tree-path">{{ session_path }}</div>
+                <div class="file-tree-items">
+                    <div class="file-tree-item">
+                        <span class="file-icon">📄</span>
+                        <span class="file-name">{{ draft_filename }}</span>
+                    </div>
+                    {% if has_images %}
+                    <div class="file-tree-item file-tree-folder">
+                        <span class="file-icon">📁</span>
+                        <span class="file-name">images/</span>
+                    </div>
+                    {% for image in image_files %}
+                    <div class="file-tree-item file-tree-nested">
+                        <span class="file-icon">🖼️</span>
+                        <span class="file-name">{{ image }}</span>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
         <div class="action-buttons">
+            {% if has_images %}
+            <a href="/sessions/{{ session_id }}/download-zip" class="btn btn-primary">
+                Download as ZIP (Content + Images)
+            </a>
+            <a href="/sessions/{{ session_id }}/download" class="btn btn-secondary" download>
+                Download Content Only
+            </a>
+            {% else %}
             <a href="/sessions/{{ session_id }}/download" class="btn btn-primary" download>
                 Download Blog Post
             </a>
+            {% endif %}
+            <button id="open-finder-btn" class="btn btn-secondary">
+                Open in Finder
+            </button>
             <a href="/sessions/new" class="btn btn-secondary">
                 Create Another Post
             </a>
         </div>
 
-        <div class="output-path">
-            <p>Saved to: <code>{{ output_path }}</code></p>
+        <div class="copy-path-section">
+            <button id="copy-path-btn" class="btn-link">
+                Copy path to clipboard
+            </button>
         </div>
     </div>
 </div>
 
 <style>
 .complete-container {
-    max-width: 600px;
+    max-width: 700px;
     margin: 4rem auto;
-    padding: 0 1rem;
+    padding: 0 var(--space-md);
     text-align: center;
 }
 
 .success-animation {
-    margin-bottom: 2rem;
+    margin-bottom: var(--space-xl);
 }
 
 .checkmark-circle {
     width: 120px;
     height: 120px;
     margin: 0 auto;
-    animation: scaleIn var(--duration-celebration) var(--easing-spring);
+    animation: scaleIn 700ms var(--easing-spring);
 }
 
 @keyframes scaleIn {
@@ -109,61 +148,129 @@
 }
 
 .complete-content h1 {
-    font-size: 2rem;
+    font-size: var(--text-3xl);
     color: var(--color-text-primary);
-    margin-bottom: 0.5rem;
+    margin-bottom: var(--space-xs);
+    font-weight: var(--weight-semibold);
 }
 
 .complete-subtitle {
-    font-size: 1.125rem;
+    font-size: var(--text-lg);
     color: var(--color-text-secondary);
-    margin-bottom: 2rem;
+    margin-bottom: var(--space-xl);
 }
 
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-    margin-bottom: 2rem;
+    gap: var(--space-md);
+    margin-bottom: var(--space-xl);
 }
 
 .stat-card {
     background: var(--color-bg-secondary);
-    padding: 1.5rem;
-    border-radius: 10px;
+    padding: var(--space-lg);
+    border-radius: var(--radius-md);
     box-shadow: var(--shadow-card);
 }
 
 .stat-value {
-    font-size: 2.5rem;
-    font-weight: 600;
+    font-size: var(--text-3xl);
+    font-weight: var(--weight-semibold);
     color: var(--color-accent-primary);
-    margin-bottom: 0.25rem;
+    margin-bottom: var(--space-xs);
 }
 
 .stat-label {
-    font-size: 0.875rem;
+    font-size: var(--text-sm);
     color: var(--color-text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
 
+/* Files Section */
+.files-section {
+    background: var(--color-bg-secondary);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    box-shadow: var(--shadow-card);
+    margin-bottom: var(--space-xl);
+    text-align: left;
+}
+
+.files-section h3 {
+    font-size: var(--text-xl);
+    font-weight: var(--weight-semibold);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-md) 0;
+}
+
+.file-tree {
+    background: var(--color-bg-tertiary);
+    border-radius: var(--radius-sm);
+    padding: var(--space-md);
+}
+
+.file-tree-path {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--color-accent-primary);
+    margin-bottom: var(--space-md);
+    padding-bottom: var(--space-sm);
+    border-bottom: 1px solid var(--color-border);
+    word-break: break-all;
+}
+
+.file-tree-items {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+.file-tree-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-xs);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--color-text-primary);
+}
+
+.file-tree-nested {
+    padding-left: var(--space-lg);
+}
+
+.file-icon {
+    font-size: var(--text-base);
+}
+
+.file-name {
+    color: var(--color-text-secondary);
+}
+
+/* Actions */
 .action-buttons {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-    margin-bottom: 2rem;
+    gap: var(--space-md);
+    margin-bottom: var(--space-md);
 }
 
 .btn {
-    padding: 1rem 2rem;
-    border-radius: 8px;
+    padding: var(--space-md) var(--space-lg);
+    border-radius: var(--radius-md);
     border: none;
-    font-size: 1rem;
+    font-size: var(--text-base);
+    font-weight: var(--weight-semibold);
     cursor: pointer;
     text-decoration: none;
     display: inline-block;
     transition: all var(--duration-quick) var(--easing-standard);
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .btn-primary {
@@ -174,36 +281,59 @@
 
 .btn-primary:hover {
     background: var(--color-accent-hover);
-    transform: translateY(-1px);
+    box-shadow: var(--shadow-button-hover);
 }
 
 .btn-secondary {
     background: var(--color-bg-tertiary);
     color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
 }
 
 .btn-secondary:hover {
-    background: var(--color-bg-secondary);
+    background: var(--color-bg-primary);
+    border-color: var(--color-accent-primary);
 }
 
-.output-path {
-    margin-top: 2rem;
-    padding-top: 2rem;
-    border-top: 1px solid var(--color-bg-tertiary);
+.copy-path-section {
+    margin-top: var(--space-md);
 }
 
-.output-path p {
-    color: var(--color-text-secondary);
-    font-size: 0.875rem;
+.btn-link {
+    background: none;
+    border: none;
+    color: var(--color-accent-primary);
+    font-size: var(--text-sm);
+    cursor: pointer;
+    text-decoration: underline;
+    padding: var(--space-xs);
 }
 
-.output-path code {
-    background: var(--color-bg-tertiary);
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    font-family: 'SF Mono', 'Monaco', monospace;
-    font-size: 0.875rem;
-    color: var(--color-text-primary);
+.btn-link:hover {
+    opacity: 0.8;
 }
 </style>
+
+<script>
+const sessionPath = "{{ session_path }}";
+
+// Copy path to clipboard
+document.getElementById('copy-path-btn').addEventListener('click', async () => {
+    await navigator.clipboard.writeText(sessionPath);
+
+    const btn = document.getElementById('copy-path-btn');
+    const originalText = btn.textContent;
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => {
+        btn.textContent = originalText;
+    }, 1500);
+});
+
+// Open in Finder (macOS/Windows/Linux)
+document.getElementById('open-finder-btn').addEventListener('click', async () => {
+    await fetch('/sessions/{{ session_id }}/open-folder', {
+        method: 'POST'
+    });
+});
+</script>
 {% endblock %}
