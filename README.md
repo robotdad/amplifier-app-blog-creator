@@ -19,7 +19,13 @@ Your browser opens with a polished interface:
 - Real-time AI progress visualization
 - One-click approval or iterative refinement
 
-**First time?** The app will prompt for your Anthropic API key (stored in session only, never saved).
+**First time?** The app will prompt for your API keys:
+
+**Required API Keys:**
+- **ANTHROPIC_API_KEY** - For content generation ([Get key](https://console.anthropic.com/settings/keys))
+- **GOOGLE_API_KEY** - For image generation ([Get key](https://aistudio.google.com/app/apikey))
+
+Keys are stored in session only during web mode, never saved to disk.
 
 ---
 
@@ -439,6 +445,14 @@ This app composes three Amplifier modules:
 - **amplifier-module-markdown-utils** - Processes markdown
 
 All dependencies install automatically via git sources.
+
+### Module Repositories
+
+These modules are developed independently and can be used in other projects:
+
+- [amplifier-module-style-extraction](https://github.com/robotdad/amplifier-module-style-extraction) - Extracts writing style patterns from sample documents
+- [amplifier-module-image-generation](https://github.com/robotdad/amplifier-module-image-generation) - AI image generation with multiple provider support (OpenAI DALL-E, Google Imagen)
+- [amplifier-module-markdown-utils](https://github.com/robotdad/amplifier-module-markdown-utils) - Markdown parsing, title extraction, and slug generation
 
 ---
 
