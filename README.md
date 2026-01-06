@@ -32,6 +32,18 @@ Keys are stored in session only during web mode, never saved to disk.
 
 ---
 
+## Architecture (Modernized 2026-01-05)
+
+This web application provides a polished interface for the **amplifier-bundle-blog-creator** bundle:
+
+- **Core Logic**: Provided by [amplifier-bundle-blog-creator](https://github.com/robotdad/amplifier-bundle-blog-creator)
+- **Web UI**: This FastAPI app wraps recipe execution with SSE streaming
+- **Execution**: Subprocess calls to Amplifier CLI running the bundle's recipe
+
+For CLI usage or to understand the workflow, see the bundle repo.
+
+---
+
 ## The Problem
 
 You have ideas worth sharing, but:
@@ -334,17 +346,25 @@ Blog Creator uses a clean separation between core logic and UI concerns, enablin
 - `input_handler.py` - User input handling (feedback, approvals)
 - `main.py` - CLI entry point and workflow orchestration
 
-### Web Adapter (`web/`)
+### Web Adapter (`web/`) - Modernized
 
-**Web interface built on core:**
+**Recipe-based execution:**
 
 - `app.py` - FastAPI application with SSE support
 - `routes/` - HTTP endpoints for sessions, workflow, and progress
+- `recipe_executor.py` - **NEW: Subprocess wrapper for recipe execution**
 - `templates/` - Jinja2 templates for each stage
 - `static/` - CSS (design tokens, components) and JavaScript (HTMX, CodeMirror)
 
+**Key change (Phase 5):**
+- Replaced hardcoded `BlogCreatorWorkflow` with `RecipeExecutor`
+- Web UI now executes `amplifier-bundle-blog-creator/recipes/create-blog-post.yaml`
+- SSE streams recipe progress to frontend
+- ~30 lines of code eliminated, simpler implementation
+
 **Technology stack:**
 - FastAPI + Uvicorn for async web serving
+- Amplifier CLI subprocess for recipe execution (**NEW**)
 - HTMX for dynamic HTML without page reloads
 - Jinja2 for server-side templating
 - CodeMirror 6 for rich markdown editing
@@ -441,17 +461,21 @@ The tool maintains session state for resume capability:
 
 ## Dependencies
 
-This app composes three Amplifier modules:
+This web app wraps the **amplifier-bundle-blog-creator** bundle:
 
-- **amplifier-module-style-extraction** - Analyzes writing samples
-- **amplifier-module-image-generation** - Creates AI images
-- **amplifier-module-markdown-utils** - Processes markdown
+- **amplifier-bundle-blog-creator** - Core blog creation bundle with agents and recipes
+- **Amplifier CLI** - Required for recipe execution (`amplifier` command)
 
-All dependencies install automatically via git sources.
+**Legacy Python modules** (being phased out):
+- **amplifier-module-style-extraction** - Legacy library (tool version in bundle)
+- **amplifier-module-image-generation** - Now supports tool protocol
+- **amplifier-module-markdown-utils** - Utility library
+
+All workflow logic now lives in the bundle. This app provides the web interface only.
 
 ### Module Repositories
 
-These modules are developed independently and can be used in other projects:
+For reference, the legacy modules that informed the bundle design:
 
 - [amplifier-module-style-extraction](https://github.com/robotdad/amplifier-module-style-extraction) - Extracts writing style patterns from sample documents
 - [amplifier-module-image-generation](https://github.com/robotdad/amplifier-module-image-generation) - AI image generation with multiple provider support (OpenAI DALL-E, Google Imagen)
@@ -479,6 +503,29 @@ uv run pytest tests/core/stages/test_style_extraction.py
 # With coverage
 uv run pytest --cov=amplifier_app_blog_creator
 ```
+
+---
+
+## Testing
+
+### Web UI Tests
+
+Playwright end-to-end tests validate the complete user workflow:
+
+```bash
+# Install Playwright
+uv run playwright install chromium
+
+# Run smoke tests
+uv run pytest tests/web/test_web_ui_e2e.py::TestSmoke -v
+
+# Run full E2E suite (requires ANTHROPIC_API_KEY, 10+ minutes)
+export ANTHROPIC_API_KEY="your-key"
+uv run python -m amplifier_app_blog_creator.web.main --no-browser &
+uv run pytest tests/web/ -v
+```
+
+See `tests/web/README.md` for detailed testing documentation.
 
 ### Project Structure
 
