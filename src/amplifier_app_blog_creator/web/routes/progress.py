@@ -10,9 +10,8 @@ from fastapi import Request
 from fastapi.responses import HTMLResponse
 from sse_starlette.sse import EventSourceResponse
 
-from ...core.models import RevisionFeedback
-from ...core.workflow import BlogCreatorWorkflow
 from ...session import SessionManager
+from ..recipe_executor import RecipeExecutor
 from ..templates_config import templates
 
 logger = logging.getLogger(__name__)
@@ -99,7 +98,7 @@ async def progress_stream(session_id: str):
 
 
 async def run_workflow(session_id: str):
-    """Run blog creation workflow with progress updates."""
+    """Run blog creation workflow via recipe execution."""
     queue = progress_queues[session_id]
 
     try:
@@ -107,75 +106,44 @@ async def run_workflow(session_id: str):
         session_mgr = SessionManager(Path(f".data/blog_creator/{session_id}"))
 
         # Get API key from session state (stored during configuration)
-        # Core stages read from environment, so set it here
+        # Recipe execution reads from environment, so set it here
         import os
 
         api_key = session_mgr.state.api_key or os.getenv("ANTHROPIC_API_KEY")
 
         if not api_key:
-            await queue.put("Error: No API key configured")
+            await queue.put("Error: No API key configured", stage="error")
             return
 
         os.environ["ANTHROPIC_API_KEY"] = api_key
 
-        # Progress callback
-        def progress_callback(message: str):
-            asyncio.create_task(queue.put(message))
+        # Read idea file content
+        idea_path = Path(session_mgr.state.idea_path)
+        topic_content = idea_path.read_text()
 
-        await queue.put("Starting workflow...")
+        # Build recipe context
+        recipe_context = {
+            "topic": topic_content,
+            "style_samples_dir": session_mgr.state.writings_dir,
+            "additional_instructions": session_mgr.state.additional_instructions or "",
+            "with_illustrations": "false",  # Not supported in web UI yet
+            "max_images": "0",
+        }
 
-        # Get paths from session
-        idea_path_str = session_mgr.state.idea_path
-        writings_dir_str = session_mgr.state.writings_dir
+        # Execute recipe
+        recipe_path = Path("amplifier-bundle-blog-creator/recipes/create-blog-post.yaml")
+        executor = RecipeExecutor(recipe_path)
 
-        if not idea_path_str or not writings_dir_str:
-            await queue.put("Error: Missing required paths")
-            return
+        success = await executor.execute(
+            context=recipe_context, session_dir=session_mgr.session_dir, queue=queue
+        )
 
-        idea_path = Path(idea_path_str)
-        writings_dir = Path(writings_dir_str)
-
-        # Create workflow
-        workflow = BlogCreatorWorkflow(session_mgr, progress_callback=progress_callback)
-
-        # Read idea file
-        brain_dump = idea_path.read_text()
-        additional_instructions = session_mgr.state.additional_instructions
-
-        # Stage 1: Style Extraction
-        await queue.put("Extracting writing style...", stage="style_extraction", stage_index=0)
-        await workflow.run_style_extraction(writings_dir)
-
-        # Stage 2: Draft Generation
-        await queue.put("Generating initial draft...", stage="draft_generation", stage_index=1)
-        await workflow.run_draft_generation(brain_dump, additional_instructions)
-
-        # Stage 3: Review (first pass - like CLI iteration 1)
-        await queue.put("Reviewing draft...", stage="review", stage_index=2)
-        review_result = await workflow.run_review()
-
-        # Stage 4: Auto-revision if issues found (match CLI's first-pass behavior)
-        if review_result.needs_revision:
-            # Increment iteration before revision (this will be iter_1)
-            if not session_mgr.increment_iteration():
-                await queue.put("Error: Maximum iterations reached")
-                return
-
-            await queue.put("Revising based on review feedback...", stage="revision", stage_index=3)
-            feedback = RevisionFeedback(
-                action="revise", source_issues=review_result.source_issues, style_issues=review_result.style_issues
-            )
-            await workflow.run_revision(feedback)
-
-            # Review again after revision
-            await queue.put("Final review...", stage="revision", stage_index=3)
-            await workflow.run_review()
-
-        await queue.put("Workflow complete!", stage="complete", stage_index=4)
+        if not success:
+            await queue.put("Error: Recipe execution failed", stage="error")
 
     except Exception as e:
         logger.error(f"Workflow error: {e}", exc_info=True)
-        await queue.put(f"Error: {str(e)}")
+        await queue.put(f"Error: {str(e)}", stage="error")
 
     finally:
         queue.mark_complete()
